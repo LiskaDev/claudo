@@ -19,3 +19,30 @@
 [data-autoscroll-container="true"] {
   scrollbar-width: none;
 }
+
+/* 1. 修复原生浏览器悬停提示（title 属性）发白 */
+html.dark, 
+html[data-mode="dark"], 
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* 2. 修复 Claude官方或第三方库（如 Radix UI / Tippy 等）脱离文档流的自定义 DOM 弹出气泡发白 */
+html.dark [data-radix-popper-content-wrapper] > div,
+html.dark [role="tooltip"],
+html.dark .tippy-box {
+  background-color: rgb(39, 39, 42) !important;
+  color: rgb(212, 212, 216) !important;
+  border: 1px solid rgb(63, 63, 70) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 修复悬停气泡小箭头的内部填充色防漏黑底白牙 */
+html.dark [data-radix-popper-content-wrapper] svg > polygon,
+html.dark [data-radix-popper-content-wrapper] svg path,
+html.dark [role="tooltip"] svg > polygon,
+html.dark [role="tooltip"] svg path,
+html.dark .tippy-arrow::before {
+  fill: rgb(39, 39, 42) !important;
+  color: rgb(39, 39, 42) !important;
+}
