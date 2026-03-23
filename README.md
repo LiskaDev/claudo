@@ -20,14 +20,18 @@
 ### 1. 悬浮球中枢 (The FloatBall Nexus)
 自带物理引擎的中央悬浮控制舱。可随意拖拽停靠在屏幕边缘，无惧 Claude 官方界面更新，随时提供全局快捷入口。
 A centralized, physics-driven floating widget that serves as the command center for all Claudo capabilities.
+<img width="477" height="341" alt="QQ20260323-160514" src="https://github.com/user-attachments/assets/e898a0de-1f1e-45f3-a7cd-e5996a274f62" />
 
 ### 2. 对话选段导出 (Cherry-Pick Export Engine)
 点击开启后，随时精准勾选屏幕上任意指定的历史对话气泡，一键提取并清洗为 Markdown 或 TXT 格式，纯净导出。
 Select any conversation nodes and export them cleanly to Markdown or TXT format.
+<img width="1587" height="1226" alt="image" src="https://github.com/user-attachments/assets/ff1bfd4d-6e16-4144-99fd-66d60d6e61da" />
 
 ### 3. 沉浸式侧边栏 (DeepSeek-Style Scrollbar)
 独家重构优化侧边栏历史记录滑动条 UI，带来媲美 DeepSeek 的极致清爽视觉体验，彻底告别原生粗糙的滚动条。
 Custom-styled, auto-hiding history scrollbar inspired by DeepSeek's UI, providing a remarkably clean and modern navigation experience.
+<img width="493" height="519" alt="image" src="https://github.com/user-attachments/assets/86b595f4-0618-4849-8373-3d9b831e4bd1" />
+<img width="1049" height="585" alt="image" src="https://github.com/user-attachments/assets/827c5fdf-032f-4bbe-ae39-9a5e7be50aec" />
 
 ### 4. 深色模式穿透 (Adaptive Dark Mode)
 内置底层监听器，自动感知 Claude 网页的黑夜/白天模式开关，插件的悬浮球与所有面板颜色无缝跟随切换。
