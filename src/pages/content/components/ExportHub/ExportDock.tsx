@@ -83,7 +83,7 @@ function DockButton({ icon, label, disabled, isLoading, type = 'secondary', onCl
     
   const secondaryClasses = disabled
     ? 'opacity-40 cursor-not-allowed bg-transparent text-zinc-500'
-    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 shadow-sm';
+    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-[#D97757] dark:hover:bg-[#D97757] hover:text-white dark:hover:text-white transition-colors shadow-sm';
 
   return (
     <button
