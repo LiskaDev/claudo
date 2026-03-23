@@ -25,17 +25,21 @@ A centralized, physics-driven floating widget that serves as the command center 
 点击开启后，随时精准勾选屏幕上任意指定的历史对话气泡，一键提取并清洗为 Markdown 或 TXT 格式，纯净导出。
 Select any conversation nodes and export them cleanly to Markdown or TXT format.
 
-### 3. 会话宽度调节 (Chat Width Override)
-突破官方聊天窗口的宽度限制，通过悬浮球滑块自由拉伸聊天框宽度，大屏阅读代码和长文更加舒适。
-Quickly adjust and override the native chat container width to fully utilize wide monitors.
+### 3. 沉浸式侧边栏 (DeepSeek-Style Scrollbar)
+独家重构优化侧边栏历史记录滑动条 UI，带来媲美 DeepSeek 的极致清爽视觉体验，彻底告别原生粗糙的滚动条。
+Custom-styled, auto-hiding history scrollbar inspired by DeepSeek's UI, providing a remarkably clean and modern navigation experience.
 
 ### 4. 深色模式穿透 (Adaptive Dark Mode)
 内置底层监听器，自动感知 Claude 网页的黑夜/白天模式开关，插件的悬浮球与所有面板颜色无缝跟随切换。
 An embedded observer mirrors Claude's native dark mode switches for pixel-perfect integration.
 
-### 5. 沉浸式多语言引擎 (Seamless Internationalization)
-自带原生级多语言控制面板，支持在中/英文之间即时切换，设置项直接内嵌于网页中，无需繁琐点击浏览器扩展图标。
-A native embedded language selector dynamically translating all extension UI elements without external popups.
+### 5. 宽度自由调节 (Chat Width Override)
+突破官方宽度限制，大屏阅读长文代码更加舒适。
+Adjust chat container width to fully utilize wide monitors.
+
+### 6. 多语言引擎 (Seamless Internationalization)
+内嵌原生多语言面板，支持中/英双语无缝即时切换。
+Embedded selector seamlessly translating all UI elements.
 
 ---
 
