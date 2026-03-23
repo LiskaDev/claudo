@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BookText, Copy, Check, Download, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { BookText, Copy, Check, Download, Pencil, Plus, Search, Trash2, X, Unplug } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usePromptLibrary } from '../../../hooks/usePromptLibrary';
 import type { Prompt } from '@src/types/prompt';
@@ -185,7 +185,19 @@ export default function PromptPanel({ side, onClose, ballY }: Props) {
           </button>
         </div>
 
-        {mode === 'list' ? (
+        {(!chrome?.runtime?.id) ? (
+          <div className="py-10 flex flex-col items-center justify-center text-center gap-3">
+            <div className="bg-red-500/10 p-3 rounded-full">
+               <Unplug className="h-8 w-8 text-red-500" />
+            </div>
+            <div className="text-[14px] font-semibold text-red-500">插件已在后台自动更新完成</div>
+            <div className="text-[12px] text-[#6b7280] dark:text-zinc-400 max-w-[80%] leading-relaxed">
+              因浏览器的安全限制，旧版本缓存已断开数据库连接。<br/><br/>
+              <b>（您的数据绝对安全，并未丢失）</b><br/><br/>
+              请按 <b>F5</b> 刷新当前网页以连接最新版本。
+            </div>
+          </div>
+        ) : mode === 'list' ? (
           <>
             <input
               ref={fileInputRef}

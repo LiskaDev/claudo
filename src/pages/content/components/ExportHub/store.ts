@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { MESSAGE_RENDER_WRAPPER_SELECTOR, USER_MESSAGE_SELECTOR } from '@src/constants/selectors';
 
 class ExportStore {
   private listeners = new Set<() => void>();
@@ -26,12 +27,12 @@ class ExportStore {
   }
 
   toggleBulk(type: 'user' | 'assistant' | 'all') {
-    const allNodes = Array.from(document.querySelectorAll<HTMLElement>('[data-test-render-count]'));
+    const allNodes = Array.from(document.querySelectorAll<HTMLElement>(MESSAGE_RENDER_WRAPPER_SELECTOR));
     let anyUnselected = false;
     const targetIds: string[] = [];
 
     allNodes.forEach(node => {
-      const isUser = !!node.querySelector('[data-testid="user-message"]');
+      const isUser = !!node.querySelector(USER_MESSAGE_SELECTOR);
       const id = node.getAttribute('data-cherry-id');
       if (!id) return;
       

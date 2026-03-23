@@ -31,3 +31,13 @@ createPortal(<Tooltip />, target);
 - **Hover States**: Always use distinct hover states on active elements (`hover:bg-black/5 dark:hover:bg-white/5`).
 - **Contrast**: In Dark Mode, avoid `#FFFFFF` for backgrounds. Use `zinc-800` for panels, `zinc-700` for tooltips/dropdowns (elevation), and `zinc-100` / `zinc-300` for text visibility.
 - **Design Language**: Stick strictly to Tailwind primitives avoiding arbitrary hex values unless recreating a specific brand color (e.g., `#D97757` for the Claude accent).
+
+## 5. CSS Selectors (DOM Polling)
+Because Claude.ai frequently shifts its UI, **DO NOT HARDCODE ANY CLAUDE NATIVE SELECTORS** in components or hooks (e.g., `[data-test-render-count]`, `div.font-claude-message`).
+- **Always** pull them from the single source of truth: `src/constants/selectors.ts`. 
+- If you need a new selector, define it there and export it.
+
+## 6. Chrome Extension Context Invalidation (Data Safety)
+When this extension updates in the background, the injected Content Script becomes "orphaned" and loses connection to `chrome.storage.local`.
+- If an orphaned script tries to read from storage, it will fail. **DO NOT** assume the user's data array is empty (`[]`). If you overwrite it with new data while disconnected, you will trigger catastrophic data loss.
+- Always check `!chrome?.runtime?.id` before rendering crucial UI arrays (like `PromptPanel.tsx` or `ExportHub`), and if disconnected, politely lock the UI and instruct the user to hit F5 to reconnect.

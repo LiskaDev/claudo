@@ -10,6 +10,7 @@ import { ArrowLeftRight, Settings, X, Download, BookText, Globe } from 'lucide-r
 import { useTranslation } from 'react-i18next';
 import { readStoredFloatBallPosition, writeStoredFloatBallPosition } from '@src/services/storage';
 import { useDraggable } from '../../hooks/useDraggable';
+import { useDomHealth } from '../../hooks/useDomHealth';
 import { panels } from './panelRegistry';
 
 const ClaudeIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
@@ -123,6 +124,7 @@ const BALL_RIGHT_PX = 16;
  */
 export default function FloatBall() {
   const { t } = useTranslation();
+  const { isHealthy } = useDomHealth();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
   const [activePanelId, setActivePanelId] = useState<string | null>(null);
@@ -230,6 +232,12 @@ export default function FloatBall() {
           aria-label={t('widthControl.openAria')}
         >
           <ClaudeIcon className="pointer-events-none" style={{ width: '1.2rem', height: '1.2rem', color: '#ffffff' }} />
+          {!isHealthy && (
+            <div 
+              className="absolute top-0 -right-0.5 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-[#18181b] animate-pulse pointer-events-auto"
+              title="⚠️ 警告：当前版本可能不兼容。未检测到关键的 Claude.ai 官方界面节点，插件部分高级功能可能会失效。"
+            />
+          )}
         </button>
 
         {open && !activePanel ? <PanelMenu side={panelSide} onClose={closeAll} onSelectPanel={setActivePanelId} ballY={position.y} /> : null}

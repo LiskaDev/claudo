@@ -3,9 +3,11 @@ import { createPortal } from 'react-dom';
 import { exportStore, useExportStore } from './store';
 import ExportDock from './ExportDock';
 
+import { MESSAGE_RENDER_WRAPPER_SELECTOR } from '@src/constants/selectors';
+
 export const CLAUDE_SELECTORS = {
-  // Constant abstraction preventing brittle hardcoded DOM matching
-  messageNode: '[data-test-render-count]',
+  // Aliased to central configs preventing brittle hardcoded DOM matching
+  messageNode: MESSAGE_RENDER_WRAPPER_SELECTOR,
 };
 
 export default function ExportHub() {
