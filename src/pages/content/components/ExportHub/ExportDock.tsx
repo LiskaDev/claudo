@@ -40,7 +40,7 @@ export default function ExportDock() {
       </div>
 
       <div className="flex gap-2 relative">
-        <DockButton icon={<FileCode2 size={15} />} label="Markdown" disabled={count === 0 || !!loading} isLoading={loading === 'md'} type="primary" onClick={() => handleExport('md')} />
+        <DockButton icon={<FileCode2 size={15} />} label="Markdown" disabled={count === 0 || !!loading} isLoading={loading === 'md'} onClick={() => handleExport('md')} />
         <DockButton icon={<FileJson size={15} />} label="JSON" disabled={count === 0 || !!loading} isLoading={loading === 'json'} onClick={() => handleExport('json')} />
       </div>
 
