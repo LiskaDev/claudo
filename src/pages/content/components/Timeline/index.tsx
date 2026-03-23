@@ -213,7 +213,7 @@ export default function Timeline() {
       {hoveredNode && isExpanded &&
         createPortal(
           <div
-            className="fixed z-[99999] pointer-events-none px-3.5 py-2.5 text-[13px] !bg-white dark:!bg-zinc-800 !text-[#374151] dark:!text-zinc-200 rounded-[8px] border border-black/10 dark:border-white/5 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
+            className="fixed z-[99999] pointer-events-none px-3.5 py-2.5 text-[13px] !bg-white dark:!bg-zinc-900 !text-[#374151] dark:!text-zinc-100 rounded-[8px] border border-black/10 dark:border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
             style={{
               top: hoveredNode.rect.top + hoveredNode.rect.height / 2,
               left: hoveredNode.rect.left - 12,
@@ -223,8 +223,8 @@ export default function Timeline() {
               lineHeight: '1.5',
             }}
           >
-            <div className="absolute left-full top-1/2 -translate-y-1/2 h-0 w-0 border-y-[6px] border-y-transparent border-l-[6px] border-l-black/10 dark:border-l-white/5" />
-            <div className="absolute left-[calc(100%-1px)] top-1/2 -translate-y-1/2 h-0 w-0 border-y-[5px] border-y-transparent border-l-[5px] !border-l-white dark:!border-l-zinc-800" />
+            <div className="absolute left-full top-1/2 -translate-y-1/2 h-0 w-0 border-y-[6px] border-y-transparent border-l-[6px] border-l-black/10 dark:border-l-white/10" />
+            <div className="absolute left-[calc(100%-1px)] top-1/2 -translate-y-1/2 h-0 w-0 border-y-[5px] border-y-transparent border-l-[5px] !border-l-white dark:!border-l-zinc-900" />
             <div
               style={{
                 display: '-webkit-box',
@@ -237,7 +237,9 @@ export default function Timeline() {
               {hoveredNode.text}
             </div>
           </div>,
-          document.getElementById('__root-host')?.shadowRoot || document.body
+          document.getElementById('__root-host')?.shadowRoot?.getElementById('__root') || 
+          document.getElementById('__root-host')?.shadowRoot || 
+          document.body
         )}
     </>
   );
