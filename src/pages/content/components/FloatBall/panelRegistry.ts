@@ -12,6 +12,7 @@ import LanguagePanel from './panels/LanguagePanel';
 type FloatBallPanelComponentProps = {
   side: 'left' | 'right';
   onClose: () => void;
+  ballY: number;
 };
 
 export type FloatBallPanel = {

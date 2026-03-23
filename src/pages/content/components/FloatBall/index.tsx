@@ -34,6 +34,7 @@ type PanelMenuProps = {
   side: PanelSide;
   onClose: () => void;
   onSelectPanel: (panelId: string) => void;
+  ballY: number;
 };
 
 const panelIcons: Record<string, LucideIcon> = {
@@ -43,8 +44,12 @@ const panelIcons: Record<string, LucideIcon> = {
   Globe,
 };
 
-const PanelMenu = ({ side, onClose, onSelectPanel }: PanelMenuProps) => {
+const PanelMenu = ({ side, onClose, onSelectPanel, ballY }: PanelMenuProps) => {
   const { t } = useTranslation();
+
+  const percentage = (ballY + 20) / (typeof window !== 'undefined' ? window.innerHeight : 1000);
+  const safeOffset = Math.max(-100, Math.min(0, -(percentage * 100)));
+  const arrowTop = Math.max(5, Math.min(95, -safeOffset));
 
   const sideClass = side === 'left' ? 'right-full mr-3' : 'left-full ml-3';
   const arrowWrapperClass = side === 'left' ? 'left-full' : 'right-full';
@@ -53,7 +58,7 @@ const PanelMenu = ({ side, onClose, onSelectPanel }: PanelMenuProps) => {
   const arrowBorderOffsetClass = side === 'left' ? 'left-0' : 'right-0';
 
   return (
-    <div className={`absolute top-1/2 -translate-y-1/2 ${sideClass} z-50`}>
+    <div className={`absolute top-1/2 ${sideClass} z-50`} style={{ transform: `translateY(${safeOffset}%)` }}>
       <div className="relative w-[14rem] rounded-xl border !border-zinc-200 dark:!border-zinc-700/50 !bg-white/95 dark:!bg-[#18181b]/95 backdrop-blur-md p-2 !text-zinc-800 dark:!text-zinc-200 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
         <div className="mb-1 flex items-center justify-between">
           <div className="text-[12px] font-medium">FloatBall</div>
@@ -92,7 +97,7 @@ const PanelMenu = ({ side, onClose, onSelectPanel }: PanelMenuProps) => {
           })}
         </div>
 
-        <div className={`absolute top-1/2 -translate-y-1/2 ${arrowWrapperClass}`}>
+        <div className={`absolute -translate-y-1/2 ${arrowWrapperClass}`} style={{ top: `${arrowTop}%` }}>
           <div className={`h-0 w-0 border-y-[6px] border-y-transparent ${arrowBorderClass} ${side === 'left' ? 'border-l-[6px]' : 'border-r-[6px]'}`} />
           <div
             className={`absolute ${arrowBorderOffsetClass} top-1/2 -translate-y-1/2 h-0 w-0 border-y-[5px] border-y-transparent ${arrowFillClass} ${
@@ -227,8 +232,8 @@ export default function FloatBall() {
           <ClaudeIcon className="pointer-events-none" style={{ width: '1.2rem', height: '1.2rem', color: '#ffffff' }} />
         </button>
 
-        {open && !activePanel ? <PanelMenu side={panelSide} onClose={closeAll} onSelectPanel={setActivePanelId} /> : null}
-        {open && activePanel && activePanel.component ? <activePanel.component side={panelSide} onClose={closeAll} /> : null}
+        {open && !activePanel ? <PanelMenu side={panelSide} onClose={closeAll} onSelectPanel={setActivePanelId} ballY={position.y} /> : null}
+        {open && activePanel && activePanel.component ? <activePanel.component side={panelSide} onClose={closeAll} ballY={position.y} /> : null}
       </div>
     </div>
   );

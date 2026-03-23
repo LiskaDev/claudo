@@ -11,9 +11,10 @@ import type { Language } from '@src/types/settings';
 type Props = {
   side: 'left' | 'right';
   onClose: () => void;
+  ballY: number;
 };
 
-export default function LanguagePanel({ side, onClose }: Props) {
+export default function LanguagePanel({ side, onClose, ballY }: Props) {
   const { t, i18n } = useTranslation();
   const resolved = i18n.resolvedLanguage;
   const currentLanguage: Language = resolved === 'zh' ? 'zh' : resolved === 'zh-TW' ? 'zh-TW' : 'en';
@@ -23,12 +24,16 @@ export default function LanguagePanel({ side, onClose }: Props) {
     void i18n.changeLanguage(lang);
   };
 
+  const percentage = (ballY + 20) / (typeof window !== 'undefined' ? window.innerHeight : 1000);
+  const safeOffset = Math.max(-100, Math.min(0, -(percentage * 100)));
+  const arrowTop = Math.max(5, Math.min(95, -safeOffset));
+
   const sideClass = side === 'left' ? 'right-full mr-3' : 'left-full ml-3';
   const arrowWrapperClass = side === 'left' ? 'left-full' : 'right-full';
   const arrowBorderOffsetClass = side === 'left' ? 'left-0' : 'right-0';
 
   return (
-    <div className={`absolute top-1/2 -translate-y-1/2 ${sideClass} z-50`}>
+    <div className={`absolute top-1/2 ${sideClass} z-50`} style={{ transform: `translateY(${safeOffset}%)` }}>
       <div className="relative w-[14rem] rounded-xl border border-zinc-700/50 bg-[#18181b]/95 backdrop-blur-md p-3 text-zinc-200 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
         <div className="mb-3 flex items-center justify-between">
           <div className="text-[12px] font-medium flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" />{t('popup.language') || 'Language'}</div>
@@ -55,7 +60,7 @@ export default function LanguagePanel({ side, onClose }: Props) {
           {t('popup.hint') || 'Language switch applies immediately.'}
         </div>
 
-        <div className={`absolute top-1/2 -translate-y-1/2 ${arrowWrapperClass}`}>
+        <div className={`absolute -translate-y-1/2 ${arrowWrapperClass}`} style={{ top: `${arrowTop}%` }}>
           <div className={`h-0 w-0 border-y-[6px] border-y-transparent ${side === 'left' ? 'border-l-[6px] border-l-zinc-700/50' : 'border-r-[6px] border-r-zinc-700/50'}`} />
           <div
             className={`absolute ${arrowBorderOffsetClass} top-1/2 -translate-y-1/2 h-0 w-0 border-y-[5px] border-y-transparent ${

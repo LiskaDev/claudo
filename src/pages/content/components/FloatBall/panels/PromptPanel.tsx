@@ -59,9 +59,10 @@ const formatTagsInput = (tags?: string[]): string => {
 type Props = {
   side: 'left' | 'right';
   onClose: () => void;
+  ballY: number;
 };
 
-export default function PromptPanel({ side, onClose }: Props) {
+export default function PromptPanel({ side, onClose, ballY }: Props) {
   const { t } = useTranslation();
   const { tags, loading, createPrompt, updatePrompt, deletePrompt, importFromFile, exportToFile, filterPrompts } = usePromptLibrary();
 
@@ -159,6 +160,10 @@ export default function PromptPanel({ side, onClose }: Props) {
     }
   };
 
+  const percentage = (ballY + 20) / (typeof window !== 'undefined' ? window.innerHeight : 1000);
+  const safeOffset = Math.max(-100, Math.min(0, -(percentage * 100)));
+  const arrowTop = Math.max(5, Math.min(95, -safeOffset));
+
   const sideClass = side === 'left' ? 'right-full mr-3' : 'left-full ml-3';
   const arrowWrapperClass = side === 'left' ? 'left-full' : 'right-full';
   const arrowBorderClass = side === 'left' ? 'border-l-zinc-200 dark:border-l-zinc-700/50' : 'border-r-zinc-200 dark:border-r-zinc-700/50';
@@ -166,7 +171,7 @@ export default function PromptPanel({ side, onClose }: Props) {
   const arrowBorderOffsetClass = side === 'left' ? 'left-0' : 'right-0';
 
   return (
-    <div className={`absolute top-1/2 -translate-y-1/2 ${sideClass} z-50`}>
+    <div className={`absolute top-1/2 ${sideClass} z-50`} style={{ transform: `translateY(${safeOffset}%)` }}>
       <div className="relative w-[28rem] rounded-xl border !border-[#e5e0d8] dark:!border-zinc-700/50 !bg-white/95 dark:!bg-[#18181b]/95 backdrop-blur-md p-3 !text-[#374151] dark:!text-zinc-200 shadow-[0_8px_32px_rgba(0,0,0,0.16)]">
         <div className="mb-2 flex items-center justify-between">
           <div className="text-[12px] font-medium">{t('promptLibrary.title')}</div>
@@ -403,7 +408,7 @@ export default function PromptPanel({ side, onClose }: Props) {
         )}
         
         {/* Positional Arrow for FloatBall matching exact colors block */}
-        <div className={`absolute top-1/2 -translate-y-1/2 ${arrowWrapperClass}`}>
+        <div className={`absolute -translate-y-1/2 ${arrowWrapperClass}`} style={{ top: `${arrowTop}%` }}>
           <div className={`h-0 w-0 border-y-[6px] border-y-transparent ${arrowBorderClass} ${side === 'left' ? 'border-l-[6px]' : 'border-r-[6px]'}`} />
           <div
             className={`absolute ${arrowBorderOffsetClass} top-1/2 -translate-y-1/2 h-0 w-0 border-y-[5px] border-y-transparent ${arrowFillClass} ${

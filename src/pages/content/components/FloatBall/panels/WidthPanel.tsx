@@ -14,6 +14,7 @@ type Props = {
   side: 'left' | 'right';
   /** Close callback triggered by the panel close button. */
   onClose: () => void;
+  ballY: number;
 };
 
 /**
@@ -24,11 +25,15 @@ type Props = {
  * Modification Notes:
  *   - 2026-03-10 Added documentation for readability and maintenance.
  */
-export default function WidthPanel({ side, onClose }: Props) {
+export default function WidthPanel({ side, onClose, ballY }: Props) {
   const { t } = useTranslation();
   const { chatWidth, setChatWidth } = useWidthControl();
 
   const displayValue = useMemo(() => `${Math.round(chatWidth)}rem`, [chatWidth]);
+
+  const percentage = (ballY + 20) / (typeof window !== 'undefined' ? window.innerHeight : 1000);
+  const safeOffset = Math.max(-100, Math.min(0, -(percentage * 100)));
+  const arrowTop = Math.max(5, Math.min(95, -safeOffset));
 
   const sideClass = side === 'left' ? 'right-full mr-3' : 'left-full ml-3';
   const arrowWrapperClass = side === 'left' ? 'left-full' : 'right-full';
@@ -37,7 +42,7 @@ export default function WidthPanel({ side, onClose }: Props) {
   const arrowBorderOffsetClass = side === 'left' ? 'left-0' : 'right-0';
 
   return (
-    <div className={`absolute top-1/2 -translate-y-1/2 ${sideClass} z-50`}>
+    <div className={`absolute top-1/2 ${sideClass} z-50`} style={{ transform: `translateY(${safeOffset}%)` }}>
       <div className="relative w-[18rem] rounded-xl border border-zinc-700/50 bg-[#18181b]/95 backdrop-blur-md p-3 text-zinc-200 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
         <div className="mb-2 flex items-center justify-between">
           <div className="text-[12px] font-medium">{t('widthControl.title')}</div>
@@ -78,7 +83,7 @@ export default function WidthPanel({ side, onClose }: Props) {
           </button>
         </div>
 
-        <div className={`absolute top-1/2 -translate-y-1/2 ${arrowWrapperClass}`}>
+        <div className={`absolute -translate-y-1/2 ${arrowWrapperClass}`} style={{ top: `${arrowTop}%` }}>
           <div className={`h-0 w-0 border-y-[6px] border-y-transparent ${side === 'left' ? 'border-l-[6px] border-l-zinc-700/50' : 'border-r-[6px] border-r-zinc-700/50'}`} />
           <div
             className={`absolute ${arrowBorderOffsetClass} top-1/2 -translate-y-1/2 h-0 w-0 border-y-[5px] border-y-transparent ${
