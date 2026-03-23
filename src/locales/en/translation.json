@@ -1,0 +1,119 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete": "Delete",
+    "rename": "Rename",
+    "reset": "Reset"
+  },
+  "folders": {
+    "title": "Folders",
+    "newFolderAria": "Create folder",
+    "newButton": "New",
+    "folderName": "Folder name",
+    "createFolderAria": "Create folder",
+    "cancelCreateAria": "Cancel creating folder",
+    "deleteConfirm": "Delete this folder? Conversations inside will become unfiled.",
+    "deleteTitle": "Delete folder",
+    "unfiledDropAria": "Drop here to remove from folder",
+    "unfiledLabel": "Unfiled (drop here to remove)"
+  },
+  "menu": {
+    "closeAria": "Close conversation actions menu",
+    "labelAria": "Conversation actions menu",
+    "escToCloseAria": "Press Esc to close menu",
+    "moveInto": "Move to folder",
+    "emptyFolders": "No folders yet",
+    "moveOut": "Remove from folder"
+  },
+  "folderItem": {
+    "folderAria": "Folder: {{name}}",
+    "collapse": "Collapse folder",
+    "expand": "Expand folder",
+    "renameAria": "Rename folder",
+    "deleteAria": "Delete folder",
+    "dropHint": "Drop conversations into this folder"
+  },
+  "conversation": {
+    "fallbackTitle": "Conversation {{id}}",
+    "openAria": "Open conversation: {{title}}",
+    "untitled": "Untitled conversation"
+  },
+  "storage": {
+    "unnamedFolder": "Untitled folder",
+    "unavailable": "chrome.storage.local is unavailable",
+    "unknownError": "Unknown error",
+    "contextInvalidated": "Extension context invalidated: the extension was reloaded/updated; refresh the page to recover"
+  },
+  "popup": {
+    "title": "Settings",
+    "language": "Language",
+    "languageZh": "简体中文",
+    "languageZhTW": "繁體中文",
+    "languageEn": "English",
+    "hint": "Language changes apply to the current claude.ai tab."
+  },
+  "floatBall": {
+    "width": "Chat spacing",
+    "export": "Cherry-Pick Export"
+  },
+  "exportDock": {
+    "selected": "Selected",
+    "selectUser": "Select User",
+    "selectAI": "Select AI",
+    "selectAll": "Select All",
+    "cancelMode": "Cancel Selection Mode"
+  },
+  "export": {
+    "title": "Export conversation",
+    "buttonLabel": "Export",
+    "buttonAria": "Open export menu",
+    "closeAria": "Close export menu",
+    "formatLabel": "Format",
+    "formatMarkdown": "Markdown",
+    "formatJson": "JSON",
+    "exportButton": "Export",
+    "statusExporting": "Exporting...",
+    "statusSuccess": "Exported {{count}} messages",
+    "statusFailed": "Export failed",
+    "statusFailedCount": "{{count}} failed"
+  },
+  "promptLibrary": {
+    "title": "Prompt library",
+    "buttonLabel": "Prompts",
+    "buttonAria": "Open prompt library",
+    "closeAria": "Close prompt library",
+    "searchPlaceholder": "Search prompts...",
+    "filterAll": "All",
+    "new": "New",
+    "newAria": "Create new prompt",
+    "loading": "Loading...",
+    "empty": "No prompts yet. Create one to get started.",
+    "insert": "Insert",
+    "edit": "Edit",
+    "delete": "Delete",
+    "insertAria": "Insert prompt",
+    "editAria": "Edit prompt",
+    "deleteAria": "Delete prompt",
+    "deleteConfirm": "Delete \"{{title}}\"?",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g. Summarize this conversation",
+    "contentLabel": "Content",
+    "contentPlaceholder": "Write your prompt here...",
+    "tagsLabel": "Tags",
+    "tagsPlaceholder": "tag1, tag2",
+    "import": "Import",
+    "export": "Export",
+    "importSuccess": "Imported {{imported}}, skipped {{skipped}}",
+    "importFailed": "Import failed: {{error}}",
+    "exportFailed": "Export failed: {{error}}"
+  },
+  "widthControl": {
+    "title": "Chat spacing",
+    "valueLabel": "Spacing",
+    "openAria": "Open chat spacing control",
+    "closeAria": "Close chat spacing control",
+    "sliderAria": "Adjust chat spacing"
+  }
+}

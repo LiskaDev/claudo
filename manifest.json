@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Claudo",
+  "version": "1.0.0",
+  "description": "Claudo: The ultimate Claude UI Overhaul. Standalone FloatBall Nexus and Anti-React Export Engine.",
+  "options_ui": {
+    "page": "src/pages/options/index.html"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icon-16.png",
+      "32": "icon-32.png",
+      "48": "icon-48.png",
+      "128": "icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://claude.ai/*"
+      ],
+      "js": [
+        "src/pages/content/index.tsx"
+      ],
+      "css": [
+        "contentStyle.css"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "contentStyle.css",
+        "icon-128.png",
+        "icon-48.png",
+        "icon-32.png",
+        "icon-16.png"
+      ],
+      "matches": []
+    }
+  ]
+}

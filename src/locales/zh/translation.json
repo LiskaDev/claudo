@@ -1,0 +1,119 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "create": "创建",
+    "delete": "删除",
+    "rename": "重命名",
+    "reset": "重置"
+  },
+  "folders": {
+    "title": "文件夹",
+    "newFolderAria": "新建文件夹",
+    "newButton": "新建",
+    "folderName": "文件夹名称",
+    "createFolderAria": "创建文件夹",
+    "cancelCreateAria": "取消创建文件夹",
+    "deleteConfirm": "确定要删除该文件夹吗？文件夹内对话将变为未归类。",
+    "deleteTitle": "删除文件夹",
+    "unfiledDropAria": "拖拽到这里移出文件夹",
+    "unfiledLabel": "未归类（拖拽到此移出）"
+  },
+  "menu": {
+    "closeAria": "关闭对话操作菜单",
+    "labelAria": "对话操作菜单",
+    "escToCloseAria": "按 Esc 关闭菜单",
+    "moveInto": "移入文件夹",
+    "emptyFolders": "暂无文件夹",
+    "moveOut": "移出文件夹"
+  },
+  "folderItem": {
+    "folderAria": "文件夹：{{name}}",
+    "collapse": "折叠文件夹",
+    "expand": "展开文件夹",
+    "renameAria": "重命名文件夹",
+    "deleteAria": "删除文件夹",
+    "dropHint": "拖拽对话到此文件夹"
+  },
+  "conversation": {
+    "fallbackTitle": "对话 {{id}}",
+    "openAria": "打开对话：{{title}}",
+    "untitled": "未命名对话"
+  },
+  "storage": {
+    "unnamedFolder": "未命名文件夹",
+    "unavailable": "chrome.storage.local 不可用",
+    "unknownError": "未知错误",
+    "contextInvalidated": "检测到扩展上下文已失效：通常是扩展刚被重新加载/更新，刷新页面即可恢复"
+  },
+  "popup": {
+    "title": "设置",
+    "language": "语言",
+    "languageZh": "简体中文",
+    "languageZhTW": "繁體中文",
+    "languageEn": "English",
+    "hint": "语言切换会应用到当前打开的 claude.ai 页面。"
+  },
+  "floatBall": {
+    "width": "对话间距",
+    "export": "选段导出"
+  },
+  "exportDock": {
+    "selected": "项已选",
+    "selectUser": "全选人类",
+    "selectAI": "全选AI",
+    "selectAll": "全选所有",
+    "cancelMode": "取消框选模式"
+  },
+  "export": {
+    "title": "导出对话",
+    "buttonLabel": "导出",
+    "buttonAria": "打开导出菜单",
+    "closeAria": "关闭导出菜单",
+    "formatLabel": "格式",
+    "formatMarkdown": "Markdown",
+    "formatJson": "JSON",
+    "exportButton": "导出",
+    "statusExporting": "导出中…",
+    "statusSuccess": "已导出 {{count}} 条消息",
+    "statusFailed": "导出失败",
+    "statusFailedCount": "{{count}} 条失败"
+  },
+  "promptLibrary": {
+    "title": "提示词库",
+    "buttonLabel": "提示词",
+    "buttonAria": "打开提示词库",
+    "closeAria": "关闭提示词库",
+    "searchPlaceholder": "搜索提示词…",
+    "filterAll": "全部",
+    "new": "新建",
+    "newAria": "新建提示词",
+    "loading": "加载中…",
+    "empty": "暂无提示词，点击“新建”开始创建。",
+    "insert": "插入",
+    "edit": "编辑",
+    "delete": "删除",
+    "insertAria": "插入提示词",
+    "editAria": "编辑提示词",
+    "deleteAria": "删除提示词",
+    "deleteConfirm": "确定删除「{{title}}」吗？",
+    "titleLabel": "标题",
+    "titlePlaceholder": "例如：总结这段对话",
+    "contentLabel": "内容",
+    "contentPlaceholder": "在这里编写提示词…",
+    "tagsLabel": "标签",
+    "tagsPlaceholder": "标签1, 标签2",
+    "import": "导入",
+    "export": "导出",
+    "importSuccess": "成功导入 {{imported}} 条，跳过 {{skipped}} 条",
+    "importFailed": "导入失败：{{error}}",
+    "exportFailed": "导出失败：{{error}}"
+  },
+  "widthControl": {
+    "title": "对话间距",
+    "valueLabel": "间距",
+    "openAria": "打开对话间距调整",
+    "closeAria": "关闭对话间距调整",
+    "sliderAria": "调整对话间距"
+  }
+}
