@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import type { UsageData } from './useUsageRings';
 
 interface Props extends UsageData {}
@@ -24,6 +24,17 @@ const OUTER_CIRC = 2 * Math.PI * OUTER_R;
 
 export const UsageRings: React.FC<Props> = ({ fiveHour, sevenDay, fiveResetAt, sevenResetAt }) => {
   const [hovered, setHovered] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = () => {
+    timerRef.current = setTimeout(() => setHovered(true), 500);
+  };
+
+  const handleMouseLeave = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = null;
+    setHovered(false);
+  };
 
   // Dashoffset: 0 = 100% full, CIRC = 0% full
   const innerOffset = INNER_CIRC * (1 - fiveHour / 100);
@@ -75,9 +86,9 @@ export const UsageRings: React.FC<Props> = ({ fiveHour, sevenDay, fiveResetAt, s
       {/* 鼠标悬停捕获层 (Invisible but captures pointers without blocking clicks on the ball) */}
       <div
         className="absolute inset-0 rounded-full pointer-events-auto cursor-pointer"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       />
     </div>
   );
-};
+}
