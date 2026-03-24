@@ -14,6 +14,8 @@ import { useDomHealth } from '../../hooks/useDomHealth';
 import { exportStore } from '../ExportHub/store';
 import { searchStore } from '../SearchBar/store';
 import { panels } from './panelRegistry';
+import { useUsageRings } from './useUsageRings';
+import { UsageRings } from './UsageRings';
 
 const ClaudeIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
@@ -129,6 +131,7 @@ const BALL_RIGHT_PX = 16;
 export default function FloatBall() {
   const { t } = useTranslation();
   const { isHealthy } = useDomHealth();
+  const { usage, refresh: refreshUsage } = useUsageRings();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
   const [activePanelId, setActivePanelId] = useState<string | null>(null);
@@ -178,6 +181,7 @@ export default function FloatBall() {
         closeAll();
         return;
       }
+      refreshUsage(); // Soft refresh limits when user interacts
       setActivePanelId(null);
       setOpen(true);
     },
@@ -271,10 +275,10 @@ export default function FloatBall() {
 
   return (
     <div className="fixed z-50" style={containerStyle}>
-      <div ref={rootRef} className="relative">
+      <div ref={rootRef} className="relative w-[56px] h-[56px] flex items-center justify-center">
         <button
           type="button"
-          className={`flex items-center justify-center active:scale-95 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          className={`relative z-10 flex items-center justify-center active:scale-95 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
           style={{
             width: `${BALL_SIZE_REM}rem`,
             height: `${BALL_SIZE_REM}rem`,
@@ -296,6 +300,16 @@ export default function FloatBall() {
             />
           )}
         </button>
+
+        {/* Dynamic Usage Rings mounted behind the core ball */}
+        {!open && usage && (
+          <UsageRings
+            fiveHour={usage.fiveHour}
+            sevenDay={usage.sevenDay}
+            fiveResetAt={usage.fiveResetAt}
+            sevenResetAt={usage.sevenResetAt}
+          />
+        )}
 
         {open && !activePanel ? <PanelMenu side={panelSide} onClose={closeAll} onSelectPanel={setActivePanelId} ballY={position.y} /> : null}
         {open && activePanel && activePanel.component ? <activePanel.component side={panelSide} onClose={closeAll} ballY={position.y} /> : null}
