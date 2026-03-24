@@ -11,6 +11,7 @@ import contentStyleText from './style.css?inline';
 import Timeline from './components/Timeline';
 import FloatBall from './components/FloatBall';
 import ExportHub from './components/ExportHub';
+import SearchBar from './components/SearchBar';
 
 const mount = async () => {
   await initI18n();
@@ -22,6 +23,24 @@ const mount = async () => {
     if (payload.lang !== 'en' && payload.lang !== 'zh' && payload.lang !== 'zh-TW') return;
     void i18n.changeLanguage(payload.lang);
   });
+
+  // Inject CSS Custom Highlight styles into the Host Document's <head>.
+  // These MUST bypass the Shadow DOM because they target Claude's native text nodes.
+  const hostStyle = document.createElement('style');
+  hostStyle.id = 'claudo-highlight-styles';
+  hostStyle.textContent = `
+    ::highlight(claudo-search) {
+      background-color: rgba(217, 119, 87, 0.4);
+      color: inherit;
+    }
+    ::highlight(claudo-search-active) {
+      background-color: #D97757;
+      color: #ffffff;
+    }
+  `;
+  if (!document.getElementById('claudo-highlight-styles')) {
+    document.head.appendChild(hostStyle);
+  }
 
   const host = document.createElement('div');
   host.id = `${APP_ROOT_ID}-host`;
@@ -62,6 +81,7 @@ const mount = async () => {
       <Timeline />
       <FloatBall />
       <ExportHub />
+      <SearchBar />
     </>,
   );
 };

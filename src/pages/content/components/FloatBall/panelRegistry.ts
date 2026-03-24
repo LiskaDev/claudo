@@ -57,5 +57,16 @@ export const panels: FloatBallPanel[] = [
     labelKey: 'popup.language',
     fallbackLabel: 'Language',
     component: LanguagePanel,
+  },
+  {
+    id: 'search',
+    icon: 'Search',
+    labelKey: 'searchBox.title', // Placeholder key, can add to i18n later
+    fallbackLabel: '对话内搜索',
+    action: () => {
+      import('../SearchBar/store').then(({ searchStore }) => {
+        searchStore.open();
+      });
+    }
   }
 ];

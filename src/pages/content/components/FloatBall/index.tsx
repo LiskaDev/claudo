@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeftRight, Settings, X, Download, BookText, Globe } from 'lucide-react';
+import { ArrowLeftRight, Settings, X, Download, BookText, Globe, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { readStoredFloatBallPosition, writeStoredFloatBallPosition } from '@src/services/storage';
 import { useDraggable } from '../../hooks/useDraggable';
@@ -43,6 +43,7 @@ const panelIcons: Record<string, LucideIcon> = {
   Download,
   BookText,
   Globe,
+  Search,
 };
 
 const PanelMenu = ({ side, onClose, onSelectPanel, ballY }: PanelMenuProps) => {
