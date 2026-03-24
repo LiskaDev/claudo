@@ -8,6 +8,7 @@ import type { FC } from 'react';
 import WidthPanel from './panels/WidthPanel';
 import PromptPanel from './panels/PromptPanel';
 import LanguagePanel from './panels/LanguagePanel';
+import ShortcutsPanel from './panels/ShortcutsPanel';
 
 type FloatBallPanelComponentProps = {
   side: 'left' | 'right';
@@ -74,6 +75,6 @@ export const panels: FloatBallPanel[] = [
     icon: 'Keyboard',
     labelKey: 'shortcuts', // Placeholder
     fallbackLabel: '快捷键热键板',
-    component: (require('./panels/ShortcutsPanel').default) // Lazy load inline bypass because dynamic component import was acting up previously
+    component: ShortcutsPanel
   }
 ];
