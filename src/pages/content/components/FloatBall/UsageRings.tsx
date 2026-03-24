@@ -40,16 +40,12 @@ export const UsageRings: React.FC<Props> = ({ fiveHour, sevenDay, fiveResetAt, s
         </div>
       )}
 
-      {/* SVG rings — background tracks first, then progress tracks */}
+      {/* SVG rings — progress tracks only */}
       <svg
         width={64} height={64}
         viewBox="0 0 64 64"
         style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
       >
-        {/* Background Tracks */}
-        <circle cx={CX} cy={CY} r={OUTER_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={2.5} />
-        <circle cx={CX} cy={CY} r={INNER_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={2.5} />
-
         {/* 外圈 7天，顺时针 */}
         <circle
           cx={CX} cy={CY} r={OUTER_R}
