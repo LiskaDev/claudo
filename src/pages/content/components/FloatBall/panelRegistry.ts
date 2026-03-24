@@ -68,5 +68,12 @@ export const panels: FloatBallPanel[] = [
         searchStore.open();
       });
     }
+  },
+  {
+    id: 'shortcuts',
+    icon: 'Keyboard',
+    labelKey: 'shortcuts', // Placeholder
+    fallbackLabel: '快捷键热键板',
+    component: (require('./panels/ShortcutsPanel').default) // Lazy load inline bypass because dynamic component import was acting up previously
   }
 ];

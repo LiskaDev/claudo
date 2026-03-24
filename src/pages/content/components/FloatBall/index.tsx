@@ -6,11 +6,13 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeftRight, Settings, X, Download, BookText, Globe, Search } from 'lucide-react';
+import { ArrowLeftRight, Settings, X, Download, BookText, Globe, Search, Keyboard } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { readStoredFloatBallPosition, writeStoredFloatBallPosition } from '@src/services/storage';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useDomHealth } from '../../hooks/useDomHealth';
+import { exportStore } from '../ExportHub/store';
+import { searchStore } from '../SearchBar/store';
 import { panels } from './panelRegistry';
 
 const ClaudeIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
@@ -44,6 +46,7 @@ const panelIcons: Record<string, LucideIcon> = {
   BookText,
   Globe,
   Search,
+  Keyboard,
 };
 
 const PanelMenu = ({ side, onClose, onSelectPanel, ballY }: PanelMenuProps) => {
@@ -211,6 +214,59 @@ export default function FloatBall() {
     };
     window.addEventListener('mousedown', onDown, true);
     return () => window.removeEventListener('mousedown', onDown, true);
+  }, [open]);
+
+  // Global Centralized Shortcut Interceptor
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.userAgent.includes('Mac');
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+
+      if (e.key === 'Escape') {
+        let handled = false;
+        if (searchStore.getSnapshot().isOpen) {
+          searchStore.close();
+          handled = true;
+        }
+        if (exportStore.getSnapshot().isSelectionMode) {
+          exportStore.setIsSelectionMode(false);
+          handled = true;
+        }
+        if (open) {
+          closeAll();
+          handled = true;
+        }
+        if (handled) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        return;
+      }
+
+      if (cmdOrCtrl && e.key.toLowerCase() === 'f') {
+        if (!window.location.pathname.startsWith('/chat/')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        searchStore.open();
+      }
+
+      if (cmdOrCtrl && e.key === '/') {
+        e.preventDefault();
+        e.stopPropagation();
+        setOpen(true);
+        setActivePanelId('prompt');
+      }
+
+      if (e.altKey && e.key.toLowerCase() === 'x') {
+        if (!window.location.pathname.startsWith('/chat/')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        exportStore.setIsSelectionMode(!exportStore.getSnapshot().isSelectionMode);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, [open]);
 
   return (

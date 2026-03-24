@@ -79,28 +79,7 @@ export default function SearchBar() {
     }
   }, [currentIndex, matches, isOpen]);
 
-  // Global Keyboard Shortcut Listener for Ctrl+F
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Only intercept on chat routes
-      if (!window.location.pathname.startsWith('/chat/')) return;
-      
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        searchStore.open();
-        // Delay focus slightly to ensure render
-        setTimeout(() => inputRef.current?.focus(), 50);
-      }
-      
-      if (e.key === 'Escape' && searchStore.getSnapshot().isOpen) {
-        e.preventDefault();
-        searchStore.close();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown, { capture: true });
-    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, []);
+  // Global Keyboard Shortcut Listener moved to FloatBall integration root to prevent duplicate Esc/Ctrl bindings
 
   if (!isOpen) return null;
 
