@@ -17,8 +17,8 @@ function formatReset(iso: string): string {
   return `${h}:${m}`;
 }
 
-const CX = 28, CY = 28;
-const INNER_R = 25, OUTER_R = 30; // Reduced outer R slightly to fit exactly in 56px wrapper cleanly without clipping stroke
+const CX = 32, CY = 32;
+const INNER_R = 25, OUTER_R = 29; // 29 fits safely inside 32 (half of 64px canvas)
 const INNER_CIRC = 2 * Math.PI * INNER_R;
 const OUTER_CIRC = 2 * Math.PI * OUTER_R;
 
@@ -42,8 +42,8 @@ export const UsageRings: React.FC<Props> = ({ fiveHour, sevenDay, fiveResetAt, s
 
       {/* SVG rings — background tracks first, then progress tracks */}
       <svg
-        width={56} height={56}
-        viewBox="0 0 56 56"
+        width={64} height={64}
+        viewBox="0 0 64 64"
         style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
       >
         {/* Background Tracks */}

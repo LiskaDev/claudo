@@ -275,7 +275,7 @@ export default function FloatBall() {
 
   return (
     <div className="fixed z-50" style={containerStyle}>
-      <div ref={rootRef} className="relative w-[56px] h-[56px] flex items-center justify-center">
+      <div ref={rootRef} className="relative w-[64px] h-[64px] flex items-center justify-center">
         <button
           type="button"
           className={`relative z-10 flex items-center justify-center active:scale-95 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
