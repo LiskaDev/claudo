@@ -30,9 +30,7 @@ export const UsageRings: React.FC<Props> = ({ fiveHour, sevenDay, fiveResetAt, s
   const outerOffset = OUTER_CIRC * (1 - sevenDay / 100);
 
   return (
-    <div 
-      style={{ position: 'absolute', top: -6, left: -6, width: 56, height: 56, pointerEvents: 'none', zIndex: -1 }}
-    >
+    <div className="absolute inset-0 pointer-events-none z-0">
       {hovered && (
         <div 
           className="absolute -top-[52px] left-1/2 -translate-x-1/2 bg-[#1a1a1a] border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] leading-[1.8] whitespace-nowrap text-white/75 pointer-events-none z-[9999] shadow-lg"
