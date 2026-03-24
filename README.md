@@ -46,12 +46,14 @@ Adjust chat container width to fully utilize wide monitors.
 Embedded selector seamlessly translating all UI elements.
 
 ### 7. 动态额度监控指纹环 (Real-time Usage Rings)
-独家破译 Claude API 底层协议，在悬浮球外围以 Apple Watch 闭环风格实时渲染「当前 5 小时会话窗口剩余可用量（红圈）」与「周免额度（绿圈）」。鼠标悬停 0.5 秒即刻浮现精确百分比与重置时间。
+在悬浮球外围以 Apple Watch 闭环风格实时渲染「当前 5 小时会话窗口剩余可用量（红圈）」与「周免额度（绿圈）」。鼠标悬停 0.5 秒即刻浮现精确百分比与重置时间。
 Silently intercepts hidden GraphQL utilization endpoints to vividly render 5-hour and 7-day message limits as glassmorphic concentric rings tracking pure user allocation.
+<img width="497" height="546" alt="image" src="https://github.com/user-attachments/assets/d765aed2-8ed5-4be8-a026-592086c4532c" />
 
 ### 8. 对话内高性能搜索 (In-Conversation Search Engine)
 基于 `CSS Custom Highlight API` 架构的零污染搜索引擎。在任意对话页面按下 `Ctrl/Cmd + F`，可无限制高亮查找长篇历史记录，彻底杜绝污染 React DOM 树导致的官方页面崩溃。
 A zero-DOM-mutation search engine relying on explicit Custom Highlights API rendering to instantly traverse infinite context lengths locally.
+<img width="2096" height="1392" alt="image" src="https://github.com/user-attachments/assets/1113b5a8-072c-4099-bc22-b8c3764b4f97" />
 
 ### 9. 全局极客快捷热键 (Global Shortcuts Engine)
 专为键盘流超级用户（Power User）打造的无缝心流操作：
@@ -59,6 +61,7 @@ A zero-DOM-mutation search engine relying on explicit Custom Highlights API rend
 - `Ctrl/Cmd + /`：一键呼出“系统提示词面具（Prompt Library）”
 - `Alt + X`：开关框选提取模式（Selection Export）
 - `Esc`：秒关一切悬浮操作面板
+<img width="592" height="432" alt="image" src="https://github.com/user-attachments/assets/8ed180fb-2502-4ddf-9378-1af8397f7bf6" />
 
 ### 10. DOM 劫持预警系统 (DOM Health Sentinel)
 悬浮球右上角的“呼吸红点”。由于深度操作 DOM，当 Claude 官方团队某天暗改底层 HTML 结构，导致我们的导出或搜素引擎脱钩时，红点会自动报警闪烁，提示某项进阶功能暂时失效。
