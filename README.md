@@ -266,4 +266,4 @@ npm run build:chrome
 ---
 
 ## 📜 开源协议
-MIT © Alan & Antigravity AI
+MIT © LiskaDev
