@@ -308,6 +308,7 @@ export default function FloatBall() {
             sevenDay={usage.sevenDay}
             fiveResetAt={usage.fiveResetAt}
             sevenResetAt={usage.sevenResetAt}
+            ballX={position.x}
           />
         )}
 

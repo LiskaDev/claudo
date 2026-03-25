@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import type { UsageData } from './useUsageRings';
 import type { TFunction } from 'i18next';
 
-interface Props extends UsageData {}
+interface Props extends UsageData {
+  ballX?: number;
+}
 
 function getColor(pct: number): string {
   if (pct >= 80) return '#E24B4A'; // Red for warning
@@ -38,7 +40,7 @@ const INNER_R = 25, OUTER_R = 29; // 29 fits safely inside 32 (half of 64px canv
 const INNER_CIRC = 2 * Math.PI * INNER_R;
 const OUTER_CIRC = 2 * Math.PI * OUTER_R;
 
-export const UsageRings: React.FC<Props> = ({ fiveHour, sevenDay, fiveResetAt, sevenResetAt }) => {
+export const UsageRings: React.FC<Props> = ({ fiveHour, sevenDay, fiveResetAt, sevenResetAt, ballX = 0 }) => {
   const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -57,11 +59,20 @@ export const UsageRings: React.FC<Props> = ({ fiveHour, sevenDay, fiveResetAt, s
   const innerOffset = INNER_CIRC * (1 - fiveHour / 100);
   const outerOffset = OUTER_CIRC * (1 - sevenDay / 100);
 
+  const isLeftSide = typeof window !== 'undefined' && ballX < window.innerWidth / 2;
+  const tooltipStyle: React.CSSProperties = {
+    top: '50%',
+    transform: 'translateY(-50%)',
+    left: isLeftSide ? '110%' : 'auto',
+    right: isLeftSide ? 'auto' : '110%',
+  };
+
   return (
     <div className="absolute inset-0 pointer-events-none z-0">
       {hovered && (
         <div 
-          className="absolute -top-[52px] left-1/2 -translate-x-1/2 bg-[#1a1a1a] border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] leading-[1.8] whitespace-nowrap text-white/75 pointer-events-none z-[9999] shadow-lg"
+          className="absolute bg-[#1a1a1a] border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] leading-[1.8] whitespace-nowrap text-white/75 pointer-events-none z-[9999] shadow-lg"
+          style={tooltipStyle}
         >
           <div>{t('usageRings.currentSession')}: {t('usageRings.used')} {fiveHour}% · {t('usageRings.remaining')} {100 - fiveHour}%　{formatReset(fiveResetAt, t)}</div>
           <div>{t('usageRings.weeklyLimit')}: {t('usageRings.used')} {sevenDay}% · {t('usageRings.remaining')} {100 - sevenDay}%　{formatReset(sevenResetAt, t)}</div>
