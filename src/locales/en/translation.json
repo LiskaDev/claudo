@@ -56,7 +56,10 @@
   },
   "floatBall": {
     "width": "Chat spacing",
-    "export": "Cherry-Pick Export"
+    "export": "Cherry-Pick Export",
+    "search": "In-Conversation Search",
+    "shortcuts": "Keyboard Shortcuts",
+    "domUnhealthy": "⚠️ Warning: Version mismatch. Native layout nodes undetected. Advanced features may fail."
   },
   "exportDock": {
     "selected": "Selected",

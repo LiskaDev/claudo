@@ -296,7 +296,7 @@ export default function FloatBall() {
           {!isHealthy && (
             <div 
               className="absolute top-0 -right-0.5 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-[#18181b] animate-pulse pointer-events-auto"
-              title="⚠️ 警告：当前版本可能不兼容。未检测到关键的 Claude.ai 官方界面节点，插件部分高级功能可能会失效。"
+              title={t('floatBall.domUnhealthy')}
             />
           )}
         </button>

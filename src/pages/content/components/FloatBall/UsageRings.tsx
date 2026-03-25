@@ -12,9 +12,14 @@ function getColor(pct: number): string {
 function formatReset(iso: string): string {
   if (!iso) return '';
   const date = new Date(iso);
+  const now = new Date();
+  const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   const h = date.getHours().toString().padStart(2, '0');
   const m = date.getMinutes().toString().padStart(2, '0');
-  return `${h}:${m}`;
+
+  if (diffDays <= 0) return `今天 ${h}:${m} 重置`;
+  if (diffDays === 1) return `明天 ${h}:${m} 重置`;
+  return `${diffDays}天后重置`;
 }
 
 const CX = 32, CY = 32;
@@ -46,8 +51,8 @@ export const UsageRings: React.FC<Props> = ({ fiveHour, sevenDay, fiveResetAt, s
         <div 
           className="absolute -top-[52px] left-1/2 -translate-x-1/2 bg-[#1a1a1a] border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] leading-[1.8] whitespace-nowrap text-white/75 pointer-events-none z-[9999] shadow-lg"
         >
-          <div>会话阈值：已用 {fiveHour}% · 剩 {100 - fiveHour}%{fiveResetAt ? ` · 重置 ${formatReset(fiveResetAt)}` : ''}</div>
-          <div>全局限免：已用 {sevenDay}% · 剩 {100 - sevenDay}%{sevenResetAt ? ` · 重置 ${formatReset(sevenResetAt)}` : ''}</div>
+          <div>当前会话：已用 {fiveHour}% · 剩 {100 - fiveHour}%　{formatReset(fiveResetAt)}</div>
+          <div>本周额度：已用 {sevenDay}% · 剩 {100 - sevenDay}%　{formatReset(sevenResetAt)}</div>
         </div>
       )}
 

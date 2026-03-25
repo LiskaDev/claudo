@@ -56,7 +56,10 @@
   },
   "floatBall": {
     "width": "对话间距",
-    "export": "选段导出"
+    "export": "选段导出",
+    "search": "对话内搜索",
+    "shortcuts": "快捷键热键板",
+    "domUnhealthy": "⚠️ 警告：当前版本可能不兼容。未检测到关键的 Claude.ai 官方界面节点，插件部分高级功能可能会失效。"
   },
   "exportDock": {
     "selected": "项已选",

@@ -62,7 +62,7 @@ export const panels: FloatBallPanel[] = [
   {
     id: 'search',
     icon: 'Search',
-    labelKey: 'searchBox.title', // Placeholder key, can add to i18n later
+    labelKey: 'floatBall.search',
     fallbackLabel: '对话内搜索',
     action: () => {
       import('../SearchBar/store').then(({ searchStore }) => {
@@ -73,7 +73,7 @@ export const panels: FloatBallPanel[] = [
   {
     id: 'shortcuts',
     icon: 'Keyboard',
-    labelKey: 'shortcuts', // Placeholder
+    labelKey: 'floatBall.shortcuts',
     fallbackLabel: '快捷键热键板',
     component: ShortcutsPanel
   }
