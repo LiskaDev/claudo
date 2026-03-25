@@ -50,7 +50,7 @@ export const useDraggable = (options: Options): DraggableApi => {
 
   const setClampedPosition = useCallback((next: Point) => {
     const { width, height } = getSizeRef.current();
-    const SNAP_EXPOSE = 15;
+    const SNAP_EXPOSE = 28;
     const minX = -width + SNAP_EXPOSE;
     const maxX = Math.max(0, window.innerWidth - SNAP_EXPOSE);
     const maxY = Math.max(0, window.innerHeight - height);

@@ -141,7 +141,7 @@ export default function FloatBall() {
   const [hoveringSnapped, setHoveringSnapped] = useState(false);
 
   const SNAP_THRESHOLD = 20;
-  const SNAP_EXPOSE = 15;
+  const SNAP_EXPOSE = 28;
 
   const closeAll = () => {
     setOpen(false);
