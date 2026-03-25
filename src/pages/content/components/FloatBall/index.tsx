@@ -137,6 +137,11 @@ export default function FloatBall() {
   const [activePanelId, setActivePanelId] = useState<string | null>(null);
   const [loadedPosition, setLoadedPosition] = useState<Point | null>(null);
   const [hovered, setHovered] = useState(false);
+  const [snapped, setSnapped] = useState<'left' | 'right' | null>(null);
+  const [hoveringSnapped, setHoveringSnapped] = useState(false);
+
+  const SNAP_THRESHOLD = 20;
+  const SNAP_EXPOSE = 15;
 
   const closeAll = () => {
     setOpen(false);
@@ -177,6 +182,15 @@ export default function FloatBall() {
     defaultPosition: () => loadedPosition ?? defaultPosition(),
     getSize,
     onClick: () => {
+      if (snapped) {
+        setSnapped(null);
+        const screenW = window.innerWidth;
+        const width = 64;
+        const newX = snapped === 'left' ? 0 : screenW - width;
+        setPosition({ ...position, x: newX });
+        void writeStoredFloatBallPosition({ ...position, x: newX });
+        return;
+      }
       if (open) {
         closeAll();
         return;
@@ -192,9 +206,52 @@ export default function FloatBall() {
 
   useEffect(() => {
     if (!loadedPosition) return;
-    // Ensure draggable state is in sync with restored position.
-    setPosition(loadedPosition);
+    const screenW = window.innerWidth;
+    const width = 64;
+    // Check if initial position triggers edge snap
+    if (loadedPosition.x <= SNAP_THRESHOLD || loadedPosition.x < 0) {
+      setSnapped('left');
+      setPosition({ ...loadedPosition, x: -width + SNAP_EXPOSE });
+    } else if (loadedPosition.x + width >= screenW - SNAP_THRESHOLD || loadedPosition.x > screenW - width) {
+      setSnapped('right');
+      setPosition({ ...loadedPosition, x: screenW - SNAP_EXPOSE });
+    } else {
+      setPosition(loadedPosition);
+    }
   }, [loadedPosition, setPosition]);
+
+  const prevDragging = useRef(isDragging);
+  useEffect(() => {
+    if (prevDragging.current && !isDragging) {
+      // Drag ended
+      const screenW = window.innerWidth;
+      const width = 64;
+      if (position.x <= SNAP_THRESHOLD) {
+        setSnapped('left');
+        const newPos = { ...position, x: -width + SNAP_EXPOSE };
+        setPosition(newPos);
+        void writeStoredFloatBallPosition(newPos);
+      } else if (position.x + width >= screenW - SNAP_THRESHOLD) {
+        setSnapped('right');
+        const newPos = { ...position, x: screenW - SNAP_EXPOSE };
+        setPosition(newPos);
+        void writeStoredFloatBallPosition(newPos);
+      }
+    } else if (isDragging && !prevDragging.current) {
+      // Drag started
+      setHoveringSnapped(false);
+    }
+    
+    // Unsnap threshold checks dynamically while sliding out
+    if (isDragging && snapped) {
+      if (snapped === 'left' && position.x > -64 + SNAP_EXPOSE + 10) {
+        setSnapped(null);
+      } else if (snapped === 'right' && position.x < window.innerWidth - SNAP_EXPOSE - 10) {
+        setSnapped(null);
+      }
+    }
+    prevDragging.current = isDragging;
+  }, [position, isDragging, snapped, setPosition]);
 
   const panelSide = useMemo<PanelSide>(() => {
     const size = getSize();
@@ -285,11 +342,18 @@ export default function FloatBall() {
             borderRadius: '50%',
             backgroundColor: hovered ? '#c4694b' : '#D97757', // Authentic Claude Terracotta
             boxShadow: '0 4px 16px rgba(217,119,87,0.3)',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            opacity: snapped ? (hoveringSnapped ? 0.6 : 0.15) : 1,
+            transition: 'opacity 0.3s ease, transform 0.3s ease, background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
           onPointerDown={onPointerDown}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
+          onMouseEnter={() => {
+            setHovered(true);
+            if (snapped) setHoveringSnapped(true);
+          }}
+          onMouseLeave={() => {
+            setHovered(false);
+            setHoveringSnapped(false);
+          }}
           aria-label={t('widthControl.openAria')}
         >
           <ClaudeIcon className="pointer-events-none" style={{ width: '1.2rem', height: '1.2rem', color: '#ffffff' }} />
@@ -302,7 +366,7 @@ export default function FloatBall() {
         </button>
 
         {/* Dynamic Usage Rings mounted behind the core ball */}
-        {!open && usage && (
+        {!open && usage && !snapped && (
           <UsageRings
             fiveHour={usage.fiveHour}
             sevenDay={usage.sevenDay}
