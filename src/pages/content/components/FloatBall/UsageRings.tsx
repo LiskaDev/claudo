@@ -21,7 +21,6 @@ function formatReset(iso: string, t: TFunction): string {
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffHours <= 0) return t('usageRings.resetSoon');
   if (diffHours < 24) {
     const h = date.getHours().toString().padStart(2, '0');
     const m = date.getMinutes().toString().padStart(2, '0');
