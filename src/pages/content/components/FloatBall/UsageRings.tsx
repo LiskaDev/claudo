@@ -13,12 +13,21 @@ function formatReset(iso: string): string {
   if (!iso) return '';
   const date = new Date(iso);
   const now = new Date();
-  const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  const h = date.getHours().toString().padStart(2, '0');
-  const m = date.getMinutes().toString().padStart(2, '0');
+  const diffMs = date.getTime() - now.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffDays <= 0) return `今天 ${h}:${m} 重置`;
-  if (diffDays === 1) return `明天 ${h}:${m} 重置`;
+  if (diffHours <= 0) return '即将重置';
+  if (diffHours < 24) {
+    const h = date.getHours().toString().padStart(2, '0');
+    const m = date.getMinutes().toString().padStart(2, '0');
+    return `今天 ${h}:${m} 重置`;
+  }
+  if (diffDays < 2) {
+    const h = date.getHours().toString().padStart(2, '0');
+    const m = date.getMinutes().toString().padStart(2, '0');
+    return `明天 ${h}:${m} 重置`;
+  }
   return `${diffDays}天后重置`;
 }
 
