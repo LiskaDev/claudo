@@ -1,103 +1,269 @@
 <div align="center">
-  <img src="public/icon-128.png" width="128" alt="Claudo Logo">
-  <br />
-  <h1>Claudo (克劳多)</h1>
-  <p><strong>专为 Claude.ai 打造的浸入式 UI 与增强快捷插件</strong><br>The Ultimate UI Overhaul & Agentic Standalone Framework for Claude.ai</p>
+  <img src="public/icon-128.png" width="100" alt="Claudo Logo" />
+  <h1>Claudo</h1>
+  <p>A powerful browser extension that supercharges your Claude.ai experience</p>
+
+  ![Chrome](https://img.shields.io/badge/Chrome-passing-brightgreen?logo=googlechrome)
+  ![License](https://img.shields.io/badge/License-MIT-blue)
+  ![React](https://img.shields.io/badge/React-19-61dafb?logo=react)
+  ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript)
+
+  **[English](#english) · [中文](#chinese)**
 </div>
 
 ---
 
-## 🌍 项目简介 | Introduction
+<a name="english"></a>
 
-**Claudo** 是一个专为增强和重构 Claude.ai 使用体验而生的高性能独立浏览器扩展。它采用了顶级的 WebComponent (Shadow DOM) 前端隔离技术，为你带来真正的“原生沉浸式”视觉体验以及一整套极其便利的效率工具。
+## What is Claudo?
 
-**Claudo** is a high-performance standalone extension engineered to entirely transform the Claude.ai user experience, establishing an independent, premium visual language and a robust suite of power-user tools natively floating within the Claude interface.
-
----
-
-## 🚀 核心功能 | Core Features
-
-### 1. 悬浮球中枢 (The FloatBall Nexus)
-自带物理引擎的中央悬浮控制舱。可随意拖拽停靠在屏幕边缘，无惧 Claude 官方界面更新，随时提供全局快捷入口。
-A centralized, physics-driven floating widget that serves as the command center for all Claudo capabilities.
-
-<img width="654" height="500" alt="QQ20260325-133342" src="https://github.com/user-attachments/assets/7b5b4ef5-88c1-47ec-99fb-a21880d99881" />
-
-### 2. 对话选段导出 (Cherry-Pick Export Engine)
-点击开启后，随时精准勾选屏幕上任意指定的历史对话气泡，一键提取并清洗为 Markdown 或 TXT 格式，纯净导出。
-Select any conversation nodes and export them cleanly to Markdown or TXT format.
-
-<img width="2067" height="1374" alt="QQ20260325-133700" src="https://github.com/user-attachments/assets/f22bc5cf-56e5-452a-853b-7125e0d6b8be" />
-
-### 3. 沉浸式侧边栏 (DeepSeek-Style Scrollbar)
-独家重构优化侧边栏历史记录滑动条 UI，带来媲美 DeepSeek 的极致清爽视觉体验，彻底告别原生粗糙的滚动条。
-Custom-styled, auto-hiding history scrollbar inspired by DeepSeek's UI, providing a remarkably clean and modern navigation experience.
-
-<img width="2093" height="1387" alt="QQ20260325-135426" src="https://github.com/user-attachments/assets/df201aec-f1c3-4d1c-b021-845b1cc970ee" />
-<img width="2092" height="1391" alt="QQ20260325-135453" src="https://github.com/user-attachments/assets/ae988bf3-f170-40ff-ad59-b8ac6fb6da5f" />
-
-### 4. 深色模式穿透 (Adaptive Dark Mode)
-内置底层监听器，自动感知 Claude 网页的黑夜/白天模式开关，插件的悬浮球与所有面板颜色无缝跟随切换。
-An embedded observer mirrors Claude's native dark mode switches for pixel-perfect integration.
-<img width="1998" height="1347" alt="QQ20260325-135613" src="https://github.com/user-attachments/assets/2dad43da-5f60-4b38-acbb-79cc6267cca2" />
-<img width="2019" height="1371" alt="QQ20260325-135622" src="https://github.com/user-attachments/assets/3228b0ce-b8cc-414b-8749-ae8e40c92291" />
-
-### 5. 宽度自由调节 (Chat Width Override)
-突破官方宽度限制，大屏阅读长文代码更加舒适。
-Adjust chat container width to fully utilize wide monitors.
-<img width="1635" height="1005" alt="QQ20260325-133418" src="https://github.com/user-attachments/assets/e35011e6-d2da-4abc-9c5b-9c4452809223" />
-<img width="2096" height="1077" alt="QQ20260325-133434" src="https://github.com/user-attachments/assets/084a12a9-4dfb-4570-8425-83df2fd6a477" />
-
-### 6. 多语言引擎 (Seamless Internationalization)
-内嵌原生多语言面板，支持中/英双语无缝即时切换。
-Embedded selector seamlessly translating all UI elements.
-<img width="555" height="738" alt="QQ20260325-133726" src="https://github.com/user-attachments/assets/11e897b7-d71d-4fe4-8eec-b66b6d309e54" />
-
-### 7. 动态额度监控指纹环 (Real-time Usage Rings)
-在悬浮球外围以 Apple Watch 闭环风格实时渲染「当前 5 小时会话窗口剩余可用量（红圈）」与「周免额度（绿圈）」。鼠标悬停 0.5 秒即刻浮现精确百分比与重置时间。
-Silently intercepts hidden GraphQL utilization endpoints to vividly render 5-hour and 7-day message limits as glassmorphic concentric rings tracking pure user allocation.
-
-<img width="818" height="481" alt="QQ20260325-133152" src="https://github.com/user-attachments/assets/22fdd8c5-585f-4399-afc5-795981f9e9a8" />
-
-### 8. 对话内高性能搜索 (In-Conversation Search Engine)
-基于 `CSS Custom Highlight API` 架构的零污染搜索引擎。在任意对话页面按下 `Ctrl/Cmd + F`，可无限制高亮查找长篇历史记录，彻底杜绝污染 React DOM 树导致的官方页面崩溃。
-A zero-DOM-mutation search engine relying on explicit Custom Highlights API rendering to instantly traverse infinite context lengths locally.
-
-<img width="2013" height="1257" alt="QQ20260325-134108" src="https://github.com/user-attachments/assets/37031ce3-2a86-44c3-91f4-7b5e7049fd5b" />
-
-### 9. 全局极客快捷热键 (Global Shortcuts Engine)
-专为键盘流超级用户（Power User）打造的无缝心流操作：
-- `Ctrl/Cmd + F`：在此对话页内唤起超级查找
-- `Ctrl/Cmd + /`：一键呼出“系统提示词面具（Prompt Library）”
-- `Alt + X`：开关框选提取模式（Selection Export）
-- `Esc`：秒关一切悬浮操作面板
-
-<img width="646" height="555" alt="QQ20260325-134623" src="https://github.com/user-attachments/assets/823099a3-0725-4f68-a222-8fdd42e56af0" />
-
-### 10. DOM 劫持预警系统 (DOM Health Sentinel)
-悬浮球右上角的“呼吸红点”。由于深度操作 DOM，当 Claude 官方团队某天暗改底层 HTML 结构，导致我们的导出或搜素引擎脱钩时，红点会自动报警闪烁，提示某项进阶功能暂时失效。
-A subtle heartbeat dot that automatically raises visual alarms if official Claude push updates fracture our injected structural assumptions.
-
-<img width="1343" height="458" alt="QQ20260325-135219" src="https://github.com/user-attachments/assets/caf07159-1252-4f09-8a41-daccb7957460" />
+Claude.ai is great — but it has gaps. No system prompt support, no in-page search, no usage visibility, no way to export conversations. Claudo fills all of that, built as a fully isolated Shadow DOM extension that won't break when Claude updates.
 
 ---
 
-## 🛠️ 安装与使用 | Installation & Build
+## ✨ Features
 
-### 本地开发 (Development)
+### 1. FloatBall Command Center
+A draggable floating button that lives on top of Claude. Snap it to any edge of the screen. All Claudo features are one click away — without ever leaving your conversation.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/7b5b4ef5-88c1-47ec-99fb-a21880d99881" width="600" alt="FloatBall" />
+</div>
+
+---
+
+### 2. Real-time Usage Rings
+Two concentric rings around the FloatBall show your Claude usage at a glance — inner ring for the current 5-hour session, outer ring for the weekly limit. Hover for 0.5s to see exact percentages and reset times. Color shifts green → orange → red as limits approach.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/22fdd8c5-585f-4399-afc5-795981f9e9a8" width="600" alt="Usage Rings" />
+</div>
+
+---
+
+### 3. Cherry-Pick Export
+Enter selection mode with `Alt+X`, click any message bubbles you want, and export them as clean Markdown or TXT. Great for saving just the useful parts of a long conversation.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/f22bc5cf-56e5-452a-853b-7125e0d6b8be" width="600" alt="Export" />
+</div>
+
+---
+
+### 4. In-Conversation Search
+Press `Ctrl/Cmd+F` to search inside any Claude conversation. Built on the CSS Custom Highlight API — highlights appear instantly without touching Claude's DOM, so the page never crashes.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/37031ce3-2a86-44c3-91f4-7b5e7049fd5b" width="600" alt="Search" />
+</div>
+
+---
+
+### 5. Chat Width Control
+Claude's default layout wastes space on wide monitors. Drag the width slider to stretch the conversation area to whatever width feels right for you.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/084a12a9-4dfb-4570-8425-83df2fd6a477" width="600" alt="Width Control" />
+</div>
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/e35011e6-d2da-4abc-9c5b-9c4452809223" width="600" alt="Width Control" />
+</div>
+---
+
+### 6. Prompt Library
+Store your frequently-used prompts and inject them instantly with `Ctrl/Cmd+/`. Stop retyping the same instructions every new chat.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/7f0773b5-4720-41aa-bc14-2c7a9542e0ab" width="600" />
+</div>
+
+---
+
+### 7. DeepSeek-Style Sidebar
+A clean, auto-hiding scrollbar for Claude's conversation history — inspired by DeepSeek's minimal UI. Much easier on the eyes than the default.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/df201aec-f1c3-4d1c-b021-845b1cc970ee" width="600" alt="Sidebar" />
+</div>
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/ae988bf3-f170-40ff-ad59-b8ac6fb6da5f" width="600" alt="Sidebar" />
+</div>
+---
+
+### 8. Dark Mode Sync
+Claudo automatically follows Claude's light/dark mode. No manual toggle needed.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/2dad43da-5f60-4b38-acbb-79cc6267cca2" width="600" alt="Dark Mode" />
+</div>
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/3228b0ce-b8cc-414b-8749-ae8e40c92291" width="600" alt="深色模式" />
+</div>
+---
+
+### 9. DOM Health Sentinel
+A small breathing dot on the FloatBall. If Claude's team pushes an update that breaks Claudo's export or search features, the dot turns red and blinks — so you know immediately which feature needs attention.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/caf07159-1252-4f09-8a41-daccb7957460" width="600" alt="DOM Sentinel" />
+</div>
+
+---
+
+### 10. Keyboard Shortcuts
+| Shortcut | Action |
+|---|---|
+| `Ctrl/Cmd + F` | In-conversation search |
+| `Ctrl/Cmd + /` | Open prompt library |
+| `Alt + X` | Toggle selection export mode |
+| `Esc` | Close any open panel |
+
+---
+
+## 🛠️ Installation
+
+### Install from Store
+*(Coming soon — pending Edge Add-ons review)*
+
+### Load Manually (Developer Mode)
 ```bash
 npm install
-npm run dev:chrome
-```
-
-### 生产版本打包 (Production Build)
-```bash
 npm run build:chrome
 ```
-
-> **装载须知 (Note):** 请在 Edge/Chrome 浏览器的扩展程序页面（`chrome://extensions`）中开启“开发者模式”，点击“加载已解压的扩展程序”，选择命令打包生成的 `dist_chrome` 文件夹即可。
+Then go to `chrome://extensions`, enable **Developer Mode**, click **Load unpacked**, and select the `dist_chrome` folder.
 
 ---
 
-## 📜 开源协议 | License
+## 📜 License
+MIT © Alan & Antigravity AI
+
+---
+---
+
+<a name="chinese"></a>
+
+## Claudo 是什么？
+
+Claude.ai 很好用，但有不少缺口——没有系统提示词支持、无法在页面内搜索、看不到用量、无法导出对话。Claudo 补齐了这些，基于 Shadow DOM 完全隔离构建，不会因为 Claude 更新而损坏。
+
+---
+
+## ✨ 功能介绍
+
+### 1. 悬浮球控制中心
+一个可拖拽的悬浮按钮，常驻在 Claude 页面上方，可吸附到屏幕任意边缘。所有 Claudo 功能一键直达，不打断你的对话流程。
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/7b5b4ef5-88c1-47ec-99fb-a21880d99881" width="600" alt="悬浮球" />
+</div>
+
+---
+
+### 2. 实时用量指纹环
+悬浮球外围的两个同心圆环实时显示 Claude 用量——内圈是当前5小时会话，外圈是本周额度。鼠标悬停0.5秒弹出精确百分比和重置时间。颜色随用量从绿变橙变红。
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/22fdd8c5-585f-4399-afc5-795981f9e9a8" width="600" alt="用量圆环" />
+</div>
+
+---
+
+### 3. 对话选段导出
+按 `Alt+X` 进入选择模式，点选任意对话气泡，一键导出为干净的 Markdown 或 TXT 格式。只保留你想要的内容。
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/f22bc5cf-56e5-452a-853b-7125e0d6b8be" width="600" alt="导出" />
+</div>
+
+---
+
+### 4. 对话内搜索
+按 `Ctrl/Cmd+F` 在当前对话内搜索。基于 CSS Custom Highlight API 构建，高亮渲染不接触 Claude 的 DOM，页面不会崩溃。
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/37031ce3-2a86-44c3-91f4-7b5e7049fd5b" width="600" alt="搜索" />
+</div>
+
+---
+
+### 5. 宽度自由调节
+Claude 默认布局在宽屏上浪费空间。拖动宽度滑块，把对话区域调到你最舒适的宽度。
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/084a12a9-4dfb-4570-8425-83df2fd6a477" width="600" alt="宽度调节" />
+</div>
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/e35011e6-d2da-4abc-9c5b-9c4452809223" width="600" alt="Width Control" />
+</div>
+---
+
+### 6. 提示词库
+存储常用提示词，用 `Ctrl/Cmd+/` 随时调用。再也不用每次新建对话都重新粘贴一遍。
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/7f0773b5-4720-41aa-bc14-2c7a9542e0ab" width="600" />
+</div>
+---
+
+### 7. 极简侧边栏
+参考 DeepSeek 风格重构的自动隐藏滚动条，历史对话列表更清爽。
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/df201aec-f1c3-4d1c-b021-845b1cc970ee" width="600" alt="侧边栏" />
+</div>
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/ae988bf3-f170-40ff-ad59-b8ac6fb6da5f" width="600" alt="Sidebar" />
+</div>
+---
+
+### 8. 深色模式同步
+自动跟随 Claude 的明暗模式切换，无需手动调整。
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/2dad43da-5f60-4b38-acbb-79cc6267cca2" width="600" alt="深色模式" />
+</div>
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/3228b0ce-b8cc-414b-8749-ae8e40c92291" width="600" alt="深色模式" />
+</div>
+---
+
+### 9. DOM 健康哨兵
+悬浮球右上角的呼吸小红点。当 Claude 官方更新导致导出或搜索功能失效时，红点自动闪烁报警，让你第一时间知道哪里出了问题。
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/caf07159-1252-4f09-8a41-daccb7957460" width="600" alt="DOM哨兵" />
+</div>
+
+---
+
+### 10. 全局快捷键
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl/Cmd + F` | 对话内搜索 |
+| `Ctrl/Cmd + /` | 打开提示词库 |
+| `Alt + X` | 开关选段导出模式 |
+| `Esc` | 关闭所有面板 |
+
+---
+
+## 🛠️ 安装
+
+### 从商店安装
+*(即将上线 — 正在等待 Edge 商店审核)*
+
+### 手动加载（开发者模式）
+```bash
+npm install
+npm run build:chrome
+```
+打开 `chrome://extensions`，开启**开发者模式**，点击**加载已解压的扩展程序**，选择 `dist_chrome` 文件夹。
+
+---
+
+## 📜 开源协议
 MIT © Alan & Antigravity AI
