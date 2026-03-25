@@ -128,5 +128,16 @@
     "resetToday": "Resets today at {{time}}",
     "resetTomorrow": "Resets tomorrow at {{time}}",
     "resetDays": "Resets in {{days}} days"
+  },
+  "searchBar": {
+    "placeholder": "Search in current conversation...",
+    "noResults": "No results",
+    "prev": "Previous (Shift+Enter)",
+    "next": "Next (Enter)",
+    "filterTooltip": "Filter: {{filter}}",
+    "close": "Close (Esc)",
+    "filterAll": "All Messages",
+    "filterUser": "User Only",
+    "filterClaude": "Claude Only"
   }
 }

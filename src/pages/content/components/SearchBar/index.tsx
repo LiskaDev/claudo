@@ -103,9 +103,9 @@ export default function SearchBar() {
   };
 
   const filterLabels: Record<SearchFilter, string> = {
-    all: '全部消息',
-    user: '我的消息',
-    claude: 'Claude 回复'
+    all: t('searchBar.filterAll'),
+    user: t('searchBar.filterUser'),
+    claude: t('searchBar.filterClaude')
   };
 
   return (
@@ -121,12 +121,12 @@ export default function SearchBar() {
               e.shiftKey ? handlePrev() : handleNext();
             }
           }}
-          placeholder="在当前对话中搜索..."
+          placeholder={t('searchBar.placeholder')}
           className="bg-transparent text-[13px] text-zinc-100 placeholder-zinc-500 outline-none flex-1 min-w-0"
         />
         {query && (
           <div className={`text-[12px] shrink-0 select-none mr-2 ${matchCount === 0 ? 'text-red-400 font-medium' : 'text-zinc-400'}`}>
-            {matchCount > 0 ? `${currentIndex + 1} / ${matchCount}` : '无结果'}
+            {matchCount > 0 ? `${currentIndex + 1} / ${matchCount}` : t('searchBar.noResults')}
           </div>
         )}
       </div>
@@ -135,14 +135,14 @@ export default function SearchBar() {
         <button
           onClick={handlePrev}
           className="p-1 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700/50 active:scale-95 transition-all outline-none"
-          title="上一个 (Shift+Enter)"
+          title={t('searchBar.prev')}
         >
           <ChevronUp className="w-4 h-4" />
         </button>
         <button
           onClick={handleNext}
           className="p-1 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700/50 active:scale-95 transition-all outline-none"
-          title="下一个 (Enter)"
+          title={t('searchBar.next')}
         >
           <ChevronDown className="w-4 h-4" />
         </button>
@@ -150,7 +150,7 @@ export default function SearchBar() {
         <button
           onClick={cycleFilter}
           className="p-1 ml-1 rounded flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700/50 active:scale-95 transition-all outline-none whitespace-nowrap"
-          title={`过滤条件: ${filterLabels[filter]}`}
+          title={t('searchBar.filterTooltip', { filter: filterLabels[filter] })}
         >
           <Filter className="w-3.5 h-3.5" />
           <span className="w-12 text-center">{filterLabels[filter]}</span>
@@ -159,7 +159,7 @@ export default function SearchBar() {
         <button
           onClick={searchStore.close}
           className="p-1 ml-1 rounded text-zinc-400 hover:text-red-400 hover:bg-zinc-700/50 active:scale-95 transition-all outline-none"
-          title="关闭 (Esc)"
+          title={t('searchBar.close')}
         >
           <X className="w-4 h-4" />
         </button>

@@ -128,5 +128,16 @@
     "resetToday": "今天 {{time}} 重置",
     "resetTomorrow": "明天 {{time}} 重置",
     "resetDays": "{{days}}天后重置"
+  },
+  "searchBar": {
+    "placeholder": "在当前对话中搜索...",
+    "noResults": "无结果",
+    "prev": "上一个 (Shift+Enter)",
+    "next": "下一个 (Enter)",
+    "filterTooltip": "过滤条件: {{filter}}",
+    "close": "关闭 (Esc)",
+    "filterAll": "全部消息",
+    "filterUser": "我的消息",
+    "filterClaude": "Claude 回复"
   }
 }
