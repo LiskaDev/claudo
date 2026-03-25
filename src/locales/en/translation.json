@@ -139,5 +139,12 @@
     "filterAll": "All Messages",
     "filterUser": "User Only",
     "filterClaude": "Claude Only"
+  },
+  "shortcutsPanel": {
+    "title": "Keyboard Shortcuts",
+    "search": "In-Conversation Search",
+    "promptLibrary": "Toggle Prompt Library",
+    "exportMode": "Toggle Cherry-Pick Export",
+    "closeAll": "Close active panels"
   }
 }

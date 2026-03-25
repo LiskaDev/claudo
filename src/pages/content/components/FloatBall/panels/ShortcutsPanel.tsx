@@ -25,10 +25,10 @@ export default function ShortcutsPanel({ side, onClose, ballY }: Props) {
   const altKey = isMac ? '⌥' : 'Alt';
 
   const shortcuts = [
-    { key: `${commandKey} + F`, desc: '对话内聚合搜索' },
-    { key: `${commandKey} + /`, desc: '呼出提示词面板' },
-    { key: `${altKey} + X`, desc: '开启/关闭框选导出' },
-    { key: `Esc`, desc: '快速关闭所有的活动面板' },
+    { key: `${commandKey} + F`, desc: t('shortcutsPanel.search') },
+    { key: `${commandKey} + /`, desc: t('shortcutsPanel.promptLibrary') },
+    { key: `${altKey} + X`, desc: t('shortcutsPanel.exportMode') },
+    { key: `Esc`, desc: t('shortcutsPanel.closeAll') },
   ];
 
   return (
@@ -37,7 +37,7 @@ export default function ShortcutsPanel({ side, onClose, ballY }: Props) {
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Keyboard className="h-4 w-4" />
-            <div className="text-[13px] font-medium">快捷键绑定指南</div>
+            <div className="text-[13px] font-medium">{t('shortcutsPanel.title')}</div>
           </div>
           <button
             type="button"

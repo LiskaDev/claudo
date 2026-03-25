@@ -41,3 +41,10 @@ Because Claude.ai frequently shifts its UI, **DO NOT HARDCODE ANY CLAUDE NATIVE 
 When this extension updates in the background, the injected Content Script becomes "orphaned" and loses connection to `chrome.storage.local`.
 - If an orphaned script tries to read from storage, it will fail. **DO NOT** assume the user's data array is empty (`[]`). If you overwrite it with new data while disconnected, you will trigger catastrophic data loss.
 - Always check `!chrome?.runtime?.id` before rendering crucial UI arrays (like `PromptPanel.tsx` or `ExportHub`), and if disconnected, politely lock the UI and instruct the user to hit F5 to reconnect.
+
+## 7. Mandatory Internationalization (i18n)
+This extension strictly supports dual-language operation (English & Chinese). 
+**NEVER HARDCODE UI STRINGS IN REACT COMPONENTS.**
+- If you create a new tooltip, a new FloatBall menu, an alert, or any visible text snippet, it **must** be implemented using `react-i18next`.
+- You **must** populate `src/locales/zh/translation.json` AND `src/locales/en/translation.json` concurrently in the exact same commit.
+- Any un-translated Chinese literal pushed to production is considered a critical failure. Always wrap text in `useTranslation().t()`.

@@ -139,5 +139,12 @@
     "filterAll": "全部消息",
     "filterUser": "我的消息",
     "filterClaude": "Claude 回复"
+  },
+  "shortcutsPanel": {
+    "title": "快捷键绑定指南",
+    "search": "对话内聚合搜索",
+    "promptLibrary": "呼出提示词面板",
+    "exportMode": "开启/关闭框选导出",
+    "closeAll": "快速关闭所有的活动面板"
   }
 }
