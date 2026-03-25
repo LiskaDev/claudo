@@ -118,5 +118,15 @@
     "openAria": "打开对话间距调整",
     "closeAria": "关闭对话间距调整",
     "sliderAria": "调整对话间距"
+  },
+  "usageRings": {
+    "currentSession": "当前会话",
+    "weeklyLimit": "本周额度",
+    "used": "已用",
+    "remaining": "剩",
+    "resetSoon": "即将重置",
+    "resetToday": "今天 {{time}} 重置",
+    "resetTomorrow": "明天 {{time}} 重置",
+    "resetDays": "{{days}}天后重置"
   }
 }

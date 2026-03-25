@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { UsageData } from './useUsageRings';
+import type { TFunction } from 'i18next';
 
 interface Props extends UsageData {}
 
@@ -9,7 +11,7 @@ function getColor(pct: number): string {
   return '#1D9E75'; // Green for healthy
 }
 
-function formatReset(iso: string): string {
+function formatReset(iso: string, t: TFunction): string {
   if (!iso) return '';
   const date = new Date(iso);
   const now = new Date();
@@ -17,18 +19,18 @@ function formatReset(iso: string): string {
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffHours <= 0) return '即将重置';
+  if (diffHours <= 0) return t('usageRings.resetSoon');
   if (diffHours < 24) {
     const h = date.getHours().toString().padStart(2, '0');
     const m = date.getMinutes().toString().padStart(2, '0');
-    return `今天 ${h}:${m} 重置`;
+    return t('usageRings.resetToday', { time: `${h}:${m}` });
   }
   if (diffDays < 2) {
     const h = date.getHours().toString().padStart(2, '0');
     const m = date.getMinutes().toString().padStart(2, '0');
-    return `明天 ${h}:${m} 重置`;
+    return t('usageRings.resetTomorrow', { time: `${h}:${m}` });
   }
-  return `${diffDays}天后重置`;
+  return t('usageRings.resetDays', { days: diffDays });
 }
 
 const CX = 32, CY = 32;
@@ -37,6 +39,7 @@ const INNER_CIRC = 2 * Math.PI * INNER_R;
 const OUTER_CIRC = 2 * Math.PI * OUTER_R;
 
 export const UsageRings: React.FC<Props> = ({ fiveHour, sevenDay, fiveResetAt, sevenResetAt }) => {
+  const { t } = useTranslation();
   const [hovered, setHovered] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -60,8 +63,8 @@ export const UsageRings: React.FC<Props> = ({ fiveHour, sevenDay, fiveResetAt, s
         <div 
           className="absolute -top-[52px] left-1/2 -translate-x-1/2 bg-[#1a1a1a] border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] leading-[1.8] whitespace-nowrap text-white/75 pointer-events-none z-[9999] shadow-lg"
         >
-          <div>当前会话：已用 {fiveHour}% · 剩 {100 - fiveHour}%　{formatReset(fiveResetAt)}</div>
-          <div>本周额度：已用 {sevenDay}% · 剩 {100 - sevenDay}%　{formatReset(sevenResetAt)}</div>
+          <div>{t('usageRings.currentSession')}: {t('usageRings.used')} {fiveHour}% · {t('usageRings.remaining')} {100 - fiveHour}%　{formatReset(fiveResetAt, t)}</div>
+          <div>{t('usageRings.weeklyLimit')}: {t('usageRings.used')} {sevenDay}% · {t('usageRings.remaining')} {100 - sevenDay}%　{formatReset(sevenResetAt, t)}</div>
         </div>
       )}
 

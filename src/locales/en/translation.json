@@ -118,5 +118,15 @@
     "openAria": "Open chat spacing control",
     "closeAria": "Close chat spacing control",
     "sliderAria": "Adjust chat spacing"
+  },
+  "usageRings": {
+    "currentSession": "Current Session",
+    "weeklyLimit": "Weekly Limit",
+    "used": "Used",
+    "remaining": "Left",
+    "resetSoon": "Resets soon",
+    "resetToday": "Resets today at {{time}}",
+    "resetTomorrow": "Resets tomorrow at {{time}}",
+    "resetDays": "Resets in {{days}} days"
   }
 }
