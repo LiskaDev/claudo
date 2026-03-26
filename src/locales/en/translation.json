@@ -146,13 +146,5 @@
     "promptLibrary": "Toggle Prompt Library",
     "exportMode": "Toggle Cherry-Pick Export",
     "closeAll": "Close active panels"
-  },
-  "conversationGroups": {
-    "title": "Conversation Groups",
-    "tabGroups": "📋 Groups",
-    "tabNative": "🕐 Native",
-    "newGroupPlaceholder": "New group...",
-    "unnamedChat": "Unnamed Chat",
-    "ungrouped": "Ungrouped"
   }
 }
