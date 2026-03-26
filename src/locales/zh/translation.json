@@ -146,5 +146,13 @@
     "promptLibrary": "呼出提示词面板",
     "exportMode": "开启/关闭框选导出",
     "closeAll": "快速关闭所有的活动面板"
+  },
+  "conversationGroups": {
+    "title": "对话分组",
+    "tabGroups": "📋 分组",
+    "tabNative": "🕐 原生",
+    "newGroupPlaceholder": "新建分组...",
+    "unnamedChat": "未命名对话",
+    "ungrouped": "未分组"
   }
 }

@@ -13,6 +13,8 @@ import FloatBall from './components/FloatBall';
 import ExportHub from './components/ExportHub';
 import SearchBar from './components/SearchBar';
 
+import { ConversationGroups } from './components/ConversationGroups';
+
 const mount = async () => {
   await initI18n();
 
@@ -82,6 +84,7 @@ const mount = async () => {
       <FloatBall />
       <ExportHub />
       <SearchBar />
+      <ConversationGroups />
     </>,
   );
 };
