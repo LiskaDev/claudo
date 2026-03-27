@@ -53,5 +53,5 @@ This extension strictly supports dual-language operation (English & Chinese).
 When the user requests to package the extension for the Edge/Chrome extension store, **do not manually zip the source folder**. You must execute the full build pipeline:
 1. **Version Bump**: Update `"version"` in both `package.json` and `manifest.json`.
 2. **Build**: Run `npm run build:chrome` to compile all `.tsx` and `.ts` React files into the native `dist_chrome/` output folder.
-3. **Archive**: Use PowerShell to compress the build artifacts into a clean `.zip` file for the user to upload:
-   `Compress-Archive -Path "dist_chrome\*" -DestinationPath "claudo_vX.X.X.zip" -Force`
+3. **Archive**: Use PowerShell to compress the build artifacts into a clean `.zip` file for the user to upload (ensuring `.vite` manifest caches are purged to prevent Edge Store validation failures):
+   `Remove-Item -Recurse -Force dist_chrome\.vite -ErrorAction SilentlyContinue; Compress-Archive -Path "dist_chrome\*" -DestinationPath "claudo_vX.X.X.zip" -Force`
