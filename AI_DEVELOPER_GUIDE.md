@@ -48,3 +48,10 @@ This extension strictly supports dual-language operation (English & Chinese).
 - If you create a new tooltip, a new FloatBall menu, an alert, or any visible text snippet, it **must** be implemented using `react-i18next`.
 - You **must** populate `src/locales/zh/translation.json` AND `src/locales/en/translation.json` concurrently in the exact same commit.
 - Any un-translated Chinese literal pushed to production is considered a critical failure. Always wrap text in `useTranslation().t()`.
+
+## 8. Store Deployment & Versioning Protocol
+When the user requests to package the extension for the Edge/Chrome extension store, **do not manually zip the source folder**. You must execute the full build pipeline:
+1. **Version Bump**: Update `"version"` in both `package.json` and `manifest.json`.
+2. **Build**: Run `npm run build:chrome` to compile all `.tsx` and `.ts` React files into the native `dist_chrome/` output folder.
+3. **Archive**: Use PowerShell to compress the build artifacts into a clean `.zip` file for the user to upload:
+   `Compress-Archive -Path "dist_chrome\*" -DestinationPath "claudo_vX.X.X.zip" -Force`
