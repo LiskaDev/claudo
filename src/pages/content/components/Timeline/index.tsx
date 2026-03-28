@@ -15,6 +15,44 @@ export default function Timeline() {
   const [scrollState, setScrollState] = useState({ isTop: true, isBottom: true });
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // --- Y-axis drag state ---
+  const [dragY, setDragY] = useState(0);
+  const dragStartRef = useRef<{ startY: number; initialY: number; pointerId: number } | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('claudo_timeline_y');
+    if (saved) setDragY(Number(saved));
+  }, []);
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (!dragStartRef.current || e.pointerId !== dragStartRef.current.pointerId) return;
+      e.preventDefault();
+      const dy = e.clientY - dragStartRef.current.startY;
+      const vh2 = window.innerHeight / 2;
+      const safeY = Math.max(-vh2 + 50, Math.min(vh2 - 50, dragStartRef.current.initialY + dy));
+      setDragY(safeY);
+    };
+    const onUp = (e: PointerEvent) => {
+      if (!dragStartRef.current || e.pointerId !== dragStartRef.current.pointerId) return;
+      dragStartRef.current = null;
+      localStorage.setItem('claudo_timeline_y', dragY.toString());
+    };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+    return () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onUp);
+    };
+  }, [dragY]);
+
+  const onDragPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    dragStartRef.current = { startY: e.clientY, initialY: dragY, pointerId: e.pointerId };
+  };
+
   const checkScroll = () => {
     if (!containerRef.current) return;
     const el = containerRef.current;
@@ -122,7 +160,8 @@ export default function Timeline() {
       <div 
         role="navigation" 
         aria-label="Claude Context Timeline"
-        className="fixed right-3 top-[10vh] bottom-[10vh] z-50 flex flex-col justify-center pointer-events-none min-h-0"
+        className="fixed right-3 top-1/2 z-50 flex flex-col justify-center pointer-events-none min-h-0"
+        style={{ transform: `translateY(calc(-50% + ${dragY}px))` }}
       >
         <div
           onMouseEnter={() => setIsExpanded(true)}
@@ -131,17 +170,27 @@ export default function Timeline() {
             if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
             setHoveredNode(null);
           }}
-          className={`pointer-events-auto flex flex-col rounded-xl transition-all duration-300 min-h-0 border ${
+          className={`pointer-events-auto flex flex-col rounded-xl transition-all duration-300 min-h-0 border relative pt-4 pb-0 ${
             isExpanded
               ? 'bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-md !border-[#e5e0d8] dark:!border-[#18181b] shadow-[0_8px_32px_rgba(0,0,0,0.12)]'
               : 'bg-transparent !border-transparent shadow-none'
           }`}
         >
+          {/* Top Drag Handle */}
+          <div 
+            onPointerDown={onDragPointerDown}
+            className="w-full h-5 absolute top-0 left-0 flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-black/5 dark:hover:bg-white/5 rounded-t-xl z-20"
+            title="Drag to reposition"
+            aria-hidden="true"
+          >
+            <div className={`w-8 h-1 rounded-full transition-all duration-300 ${isExpanded ? 'bg-black/20 dark:bg-white/20' : 'bg-transparent'}`} />
+          </div>
+
           <div
             ref={containerRef}
             role="list"
             onScroll={handleScroll}
-            className={`custom-scrollbar flex flex-col py-4 overflow-x-hidden max-h-[320px] min-h-0 w-full ${
+            className={`custom-scrollbar flex flex-col pb-4 pt-1 overflow-x-hidden max-h-[320px] min-h-0 w-full relative z-10 ${
               isExpanded ? 'overflow-y-auto' : 'overflow-y-hidden'
             }`}
             style={maskStyle}
