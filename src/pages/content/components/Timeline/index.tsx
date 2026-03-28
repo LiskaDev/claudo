@@ -170,7 +170,7 @@ export default function Timeline() {
             if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
             setHoveredNode(null);
           }}
-          className={`pointer-events-auto flex flex-col rounded-xl transition-all duration-300 min-h-0 border relative pt-4 pb-0 ${
+          className={`pointer-events-auto flex flex-col rounded-xl transition-all duration-300 min-h-0 border relative pt-4 pb-4 ${
             isExpanded
               ? 'bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-md !border-[#e5e0d8] dark:!border-[#18181b] shadow-[0_8px_32px_rgba(0,0,0,0.12)]'
               : 'bg-transparent !border-transparent shadow-none'
@@ -256,6 +256,17 @@ export default function Timeline() {
               );
             })}
           </div>
+
+          {/* Bottom Drag Handle */}
+          <div 
+            onPointerDown={onDragPointerDown}
+            className="w-full h-5 absolute bottom-0 left-0 flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-black/5 dark:hover:bg-white/5 rounded-b-xl z-20"
+            title="Drag to reposition"
+            aria-hidden="true"
+          >
+            <div className={`w-8 h-1 rounded-full transition-all duration-300 ${isExpanded ? 'bg-black/20 dark:bg-white/20' : 'bg-transparent'}`} />
+          </div>
+
         </div>
       </div>
 
