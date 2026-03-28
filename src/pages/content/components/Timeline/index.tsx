@@ -50,6 +50,7 @@ export default function Timeline() {
 
   const onDragPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
+    e.preventDefault();
     dragStartRef.current = { startY: e.clientY, initialY: dragY, pointerId: e.pointerId };
   };
 
