@@ -1,0 +1,14 @@
+EXIT CODE: 1
+---STDOUT---
+[36mvite v6.3.5 [32mbuilding for development...[36m[39m
+transforming...
+[32m✓[39m 2 modules transformed.
+
+---STDERR---
+[31m✗[39m Build failed in 27ms
+[31merror during build:
+[31mCould not resolve entry module "../../D:/claudo/src/pages/popup/index.html".[31m
+    at getRollupError (file:///d:/claudo/node_modules/vite/node_modules/rollup/dist/es/shared/parseAst.js:397:41)
+    at error (file:///d:/claudo/node_modules/vite/node_modules/rollup/dist/es/shared/parseAst.js:393:42)
+    at ModuleLoader.loadEntryModule (file:///d:/claudo/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:21354:20)
+    at async Promise.all (index 0)[39m

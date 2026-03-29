@@ -2,8 +2,10 @@ import { USER_MESSAGE_SELECTOR, ASSISTANT_MESSAGE_SELECTOR } from '@src/constant
 
 export type SearchFilter = 'all' | 'user' | 'claude';
 
-// Skip elements that break semantic text search (e.g., code blocks, math formulas).
-const IGNORED_TAGS = new Set(['PRE', 'CODE', 'MATH', 'SVG', 'STYLE', 'SCRIPT', 'NOSCRIPT']);
+// Skip elements that break semantic text search (e.g., math formulas, scripts).
+// PRE and CODE are intentionally NOT excluded so that bubble-style cards rendered
+// inside <pre><code> blocks (e.g., Claude checklist cards) and inline code are searchable.
+const IGNORED_TAGS = new Set(['MATH', 'SVG', 'STYLE', 'SCRIPT', 'NOSCRIPT']);
 
 /**
  * Executes a case-insensitive native DOM search via TreeWalker.
