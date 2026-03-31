@@ -10,6 +10,16 @@ export const CLAUDE_SELECTORS = {
   messageNode: MESSAGE_RENDER_WRAPPER_SELECTOR,
 };
 
+// Module-level variables persist across re-renders for Shift+click and drag state.
+let lastClickedIndex = -1;
+let isDragging = false;
+let dragStartIndex = -1;
+let dragStartState = false; // true = drag-selects, false = drag-deselects
+let dragCurrentIndex = -1;
+let dragMoved = false; // true once drag enters a node different from start
+
+const idToIndex = (id: string) => parseInt(id.replace('cherry-msg-', ''), 10);
+
 export default function ExportHub() {
   const store = useExportStore();
 
@@ -19,6 +29,13 @@ export default function ExportHub() {
       document.body.classList.remove('cherry-pick-mode');
       document.querySelectorAll('[data-cherry-selected]').forEach(n => n.removeAttribute('data-cherry-selected'));
       document.querySelectorAll('[data-cherry-id]').forEach(n => n.removeAttribute('data-cherry-id'));
+      // Reset all interaction state
+      lastClickedIndex = -1;
+      isDragging = false;
+      dragStartIndex = -1;
+      dragCurrentIndex = -1;
+      dragMoved = false;
+      document.body.style.userSelect = '';
       return;
     }
 
@@ -42,24 +59,37 @@ export default function ExportHub() {
     };
     syncDOM();
 
-    // High-performance Capture-Phase click interceptor preventing Claude hooks from misfiring
+    // High-performance Capture-Phase click interceptor preventing Claude hooks from misfiring.
+    // Supports Shift+click range selection and suppresses the synthetic click fired after a drag.
     const handleClick = (e: MouseEvent) => {
       const path = e.composedPath() as HTMLElement[];
       const isInsideDock = path.some(n => n.nodeType === 1 && n.classList?.contains('export-dock-container'));
       if (isInsideDock) return;
 
       const target = e.target as HTMLElement;
-
       const node = target.closest(CLAUDE_SELECTORS.messageNode);
+
       if (node) {
-        // Absolute lockdown on click bubbling
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
-        
+
+        // Suppress the browser's synthetic click that fires after a multi-node drag
+        if (dragMoved) {
+          dragMoved = false;
+          return;
+        }
+
         const id = node.getAttribute('data-cherry-id');
         if (id) {
-          exportStore.toggleId(id);
+          const currentIdx = idToIndex(id);
+          if (e.shiftKey && lastClickedIndex !== -1) {
+            // Shift+click: toggle the entire range; anchor stays at lastClickedIndex
+            exportStore.toggleRange(lastClickedIndex, currentIdx);
+          } else {
+            exportStore.toggleId(id);
+            lastClickedIndex = currentIdx;
+          }
         }
       } else {
         // Block all empty space clicks during selection mode!
@@ -69,11 +99,58 @@ export default function ExportHub() {
       }
     };
 
+    // Drag brush: record start node and desired state on mousedown
+    const handleMouseDown = (e: MouseEvent) => {
+      const path = e.composedPath() as HTMLElement[];
+      const isInsideDock = path.some(n => n.nodeType === 1 && n.classList?.contains('export-dock-container'));
+      if (isInsideDock) return;
+
+      const node = (e.target as HTMLElement).closest(CLAUDE_SELECTORS.messageNode);
+      if (!node) return;
+
+      const id = node.getAttribute('data-cherry-id');
+      if (!id) return;
+
+      isDragging = true;
+      dragMoved = false;
+      dragStartIndex = idToIndex(id);
+      dragCurrentIndex = dragStartIndex;
+      // Dragging from a selected item deselects; from unselected selects
+      dragStartState = !exportStore.getSnapshot().selectedIds.has(id);
+      document.body.style.userSelect = 'none';
+    };
+
+    // Drag brush: extend selection as pointer moves over new nodes
+    const handleMouseOver = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const node = (e.target as HTMLElement).closest(CLAUDE_SELECTORS.messageNode);
+      if (!node) return;
+      const id = node.getAttribute('data-cherry-id');
+      if (!id) return;
+      const currentIdx = idToIndex(id);
+      if (currentIdx === dragCurrentIndex) return; // No new node entered
+      dragCurrentIndex = currentIdx;
+      dragMoved = true;
+      exportStore.setRangeState(dragStartIndex, currentIdx, dragStartState);
+    };
+
+    // Drag brush: end drag and restore text selection
+    const handleMouseUp = () => {
+      isDragging = false;
+      document.body.style.userSelect = '';
+    };
+
     // Third parameter 'true' forces execution in the DOM capture phase!
     document.addEventListener('click', handleClick, true);
+    document.addEventListener('mousedown', handleMouseDown, true);
+    document.addEventListener('mouseover', handleMouseOver);
+    document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       document.removeEventListener('click', handleClick, true);
+      document.removeEventListener('mousedown', handleMouseDown, true);
+      document.removeEventListener('mouseover', handleMouseOver);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [store.isSelectionMode, store.selectedIds]); // Re-syncs attribute bindings strictly upon state mutation
 

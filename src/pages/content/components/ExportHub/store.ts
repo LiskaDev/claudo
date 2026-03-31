@@ -26,6 +26,35 @@ class ExportStore {
     this.updateSnapshot();
   }
 
+  // Set all IDs in [startIdx, endIdx] to a fixed selected state (used by drag).
+  setRangeState(startIdx: number, endIdx: number, selected: boolean) {
+    const min = Math.min(startIdx, endIdx);
+    const max = Math.max(startIdx, endIdx);
+    for (let i = min; i <= max; i++) {
+      const id = `cherry-msg-${i}`;
+      if (selected) {
+        this.selectedIds.add(id);
+      } else {
+        this.selectedIds.delete(id);
+      }
+    }
+    this.updateSnapshot();
+  }
+
+  // Toggle a range: select all if any is unselected, deselect all if all selected (used by Shift+click).
+  toggleRange(startIdx: number, endIdx: number) {
+    const min = Math.min(startIdx, endIdx);
+    const max = Math.max(startIdx, endIdx);
+    let anyUnselected = false;
+    for (let i = min; i <= max; i++) {
+      if (!this.selectedIds.has(`cherry-msg-${i}`)) {
+        anyUnselected = true;
+        break;
+      }
+    }
+    this.setRangeState(min, max, anyUnselected);
+  }
+
   toggleBulk(type: 'user' | 'assistant' | 'all') {
     const allNodes = Array.from(document.querySelectorAll<HTMLElement>(MESSAGE_RENDER_WRAPPER_SELECTOR));
     let anyUnselected = false;
