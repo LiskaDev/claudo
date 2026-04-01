@@ -394,3 +394,4 @@ public/manifest.json
 CLAUDE.md
 .trae/*
 *.zip
+.claude/

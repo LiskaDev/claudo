@@ -11,6 +11,13 @@ export default function SearchBar() {
   const [matches, setMatches] = useState<Range[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-focus the input whenever the search bar opens so keystrokes don't leak to Claude's chat input.
+  useEffect(() => {
+    if (isOpen) {
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+  }, [isOpen]);
+
   // Re-run search whenever query, filter, or open state changes
   useEffect(() => {
     if (!isOpen) {

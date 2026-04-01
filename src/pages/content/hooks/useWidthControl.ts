@@ -27,6 +27,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
  */
 const buildOverrideCss = (widthRem: number) => {
   return `
+div.max-w-3xl.mx-auto,
 div.mx-auto.flex.size-full.max-w-3xl.flex-col,
 div.flex-1.flex.flex-col.px-4.max-w-3xl.mx-auto.w-full.pt-1 {
   max-width: ${widthRem}rem !important;
