@@ -12,6 +12,7 @@ import Timeline from './components/Timeline';
 import FloatBall from './components/FloatBall';
 import ExportHub from './components/ExportHub';
 import SearchBar from './components/SearchBar';
+import InputCounter from './components/InputCounter';
 
 const mount = async () => {
   await initI18n();
@@ -20,7 +21,7 @@ const mount = async () => {
     if (!message || typeof message !== 'object') return;
     const payload = message as { type?: string; lang?: string };
     if (payload.type !== LANGUAGE_CHANGE_MESSAGE_TYPE) return;
-    if (payload.lang !== 'en' && payload.lang !== 'zh' && payload.lang !== 'zh-TW') return;
+    if (payload.lang !== 'en' && payload.lang !== 'zh') return;
     void i18n.changeLanguage(payload.lang);
   });
 
@@ -82,6 +83,7 @@ const mount = async () => {
       <FloatBall />
       <ExportHub />
       <SearchBar />
+      <InputCounter />
     </>,
   );
 };

@@ -55,3 +55,38 @@ When the user requests to package the extension for the Edge/Chrome extension st
 2. **Build**: Run `npm run build:chrome` to compile all `.tsx` and `.ts` React files into the native `dist_chrome/` output folder.
 3. **Archive**: Use PowerShell to compress the build artifacts into a clean `.zip` file for the user to upload (ensuring `.vite` manifest caches are purged to prevent Edge Store validation failures):
    `Remove-Item -Recurse -Force dist_chrome\.vite -ErrorAction SilentlyContinue; Compress-Archive -Path "dist_chrome\*" -DestinationPath "claudo_vX.X.X.zip" -Force`
+
+## 9. SPA Navigation Survival Pattern
+Claude.ai is a React SPA. When users switch conversations, the URL changes but the page is **not reloaded**. Any hook that uses a one-time `useEffect` to attach to a DOM element will be orphaned after navigation.
+
+**Required pattern for hooks that attach to Claude's native DOM elements:**
+```ts
+// Poll every 500ms to detect element replacement after SPA navigation
+const poll = () => {
+  const el = document.querySelector(MY_SELECTOR);
+  if (el instanceof HTMLElement) {
+    attach(el);   // idempotent: no-op if same element
+  } else if (currentEl) {
+    detach();     // clear state when element disappears
+  }
+};
+poll();
+const intervalId = window.setInterval(poll, 500);
+return () => { window.clearInterval(intervalId); detach(); };
+```
+This pattern is used in `useInputCounter.ts` and `useContextCounter.ts`. Do **not** use a one-time attach with a fallback `MutationObserver` on `document.body` — it will silently break on navigation.
+
+## 10. Input Load Indicator Architecture
+The input indicator (`src/pages/content/components/InputCounter/`) is a **two-dimensional** indicator rendered as a fixed-position SVG inside the Shadow DOM.
+
+| Dimension | Visual | Hook | Trigger |
+|---|---|---|---|
+| Current message size | Ring arc (stroke dashoffset) | `useInputCounter` | Every keystroke (via `input` event + MutationObserver) |
+| Total context size | Centre dot colour | `useContextCounter` | Only when new messages arrive (childList MutationObserver) |
+
+**Performance contract:**
+- `useInputCounter`: throttled with `requestAnimationFrame` — at most 1 DOM read per frame during typing.
+- `useContextCounter`: scans all message `textContent` only when `childList` changes on the scroll container, **not on every keystroke**.
+- Both hooks use the 500ms interval SPA survival pattern (§9).
+
+**Token estimation** (`estimateTokens`): CJK characters ≈ 1 token each; remaining ≈ 1 per 3.5 chars. Accuracy ±15%. DOM-only scan underestimates by ~10-30% (images/attachments not counted). Thresholds are intentionally conservative to avoid false alarms.

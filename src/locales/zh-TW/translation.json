@@ -107,5 +107,26 @@
     "openAria": "開啟對話寬度調整",
     "closeAria": "關閉對話寬度調整",
     "sliderAria": "調整對話寬度"
+  },
+  "shortcutsPanel": {
+    "title": "快捷鍵綁定指南",
+    "search": "對話內聚合搜索",
+    "promptLibrary": "呼出提示詞面板",
+    "exportMode": "開啟/關閉框選導出",
+    "closeAll": "快速關閉所有的活動面板",
+    "featureToggles": "功能開關",
+    "inputCounter": "輸入量指示圈"
+  },
+  "inputCounter": {
+    "hint_green": "放心輸入 😃",
+    "hint_yellow": "內容偏多 😤",
+    "hint_red": "內容太多 😣",
+    "ctx_green": "上下文充裕 🟢",
+    "ctx_yellow": "上下文過半 🟡",
+    "ctx_red": "該開新對話了 🔴",
+    "aria": "輸入量指示器"
+  },
+  "autoScroll": {
+    "jumpToBottom": "跳至最新內容"
   }
 }

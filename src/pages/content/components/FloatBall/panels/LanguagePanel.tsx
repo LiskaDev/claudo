@@ -17,7 +17,7 @@ type Props = {
 export default function LanguagePanel({ side, onClose, ballY }: Props) {
   const { t, i18n } = useTranslation();
   const resolved = i18n.resolvedLanguage;
-  const currentLanguage: Language = resolved === 'zh' ? 'zh' : resolved === 'zh-TW' ? 'zh-TW' : 'en';
+  const currentLanguage: Language = resolved === 'zh' ? 'zh' : 'en';
 
   const handleLanguageChange = (lang: Language) => {
     void setLanguage(lang);

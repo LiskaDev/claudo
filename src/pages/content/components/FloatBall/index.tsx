@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeftRight, Settings, X, Download, BookText, Globe, Search, Keyboard } from 'lucide-react';
+import { ArrowLeftRight, Settings, X, Download, BookText, Globe, Search, Keyboard, Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { readStoredFloatBallPosition, writeStoredFloatBallPosition } from '@src/services/storage';
 import { useDraggable } from '../../hooks/useDraggable';
@@ -16,6 +16,7 @@ import { searchStore } from '../SearchBar/store';
 import { panels } from './panelRegistry';
 import { useUsageRings } from './useUsageRings';
 import { UsageRings } from './UsageRings';
+import { useInputCounterEnabled } from '../../hooks/useInputCounterEnabled';
 
 const ClaudeIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style}>
@@ -53,6 +54,7 @@ const panelIcons: Record<string, LucideIcon> = {
 
 const PanelMenu = ({ side, onClose, onSelectPanel, ballY }: PanelMenuProps) => {
   const { t } = useTranslation();
+  const [inputCounterOn, toggleInputCounter] = useInputCounterEnabled();
 
   const percentage = (ballY + 20) / (typeof window !== 'undefined' ? window.innerHeight : 1000);
   const safeOffset = Math.max(-100, Math.min(0, -(percentage * 100)));
@@ -102,6 +104,33 @@ const PanelMenu = ({ side, onClose, onSelectPanel, ballY }: PanelMenuProps) => {
               </button>
             );
           })}
+        </div>
+
+        {/* ── InputCounter toggle row ── */}
+        <div className="mt-1 border-t border-zinc-200 dark:border-zinc-700/50 pt-1">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={inputCounterOn}
+            onClick={toggleInputCounter}
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            <Activity className="h-4 w-4 flex-shrink-0 text-[#6b7280] dark:text-zinc-400" aria-hidden="true" />
+            <span className="flex-1 truncate text-zinc-700 dark:text-zinc-300">
+              {t('shortcutsPanel.inputCounter', '输入量指示圈')}
+            </span>
+            <span
+              className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ${
+                inputCounterOn ? 'bg-[#1D9E75]' : '!bg-zinc-300 dark:!bg-zinc-600'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                  inputCounterOn ? 'translate-x-4' : 'translate-x-0'
+                }`}
+              />
+            </span>
+          </button>
         </div>
 
         <div className={`absolute -translate-y-1/2 ${arrowWrapperClass}`} style={{ top: `${arrowTop}%` }}>

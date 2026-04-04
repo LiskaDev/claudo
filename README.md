@@ -135,6 +135,18 @@ Perfect for when you want to focus without the usage rings drawing your attentio
 
 ---
 
+### 12. Input Load Indicator
+A compact SVG ring appears at the bottom-right corner of the chat input box whenever you start typing.
+
+- **Ring arc** — tracks the size of your *current message*. Fills green → amber → red as estimated token count grows (thresholds: 5k / 15k tokens).
+- **Centre dot** — tracks the *total conversation context* (all messages combined). Green = plenty of room, amber = over 40k tokens, red = over 120k tokens (time to start a new chat).
+
+Hover over the ring for 0.5 s to see a plain-language tooltip: `放心打字 😃 · 上下文充裕 🟢`
+
+No numbers, no jargon — just an instant read on whether you're about to send something huge or whether the conversation itself is getting long.
+
+---
+
 ## 🏗️ Architecture
 
 ### Tech Stack

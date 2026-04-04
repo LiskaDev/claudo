@@ -145,6 +145,20 @@
     "search": "对话内聚合搜索",
     "promptLibrary": "呼出提示词面板",
     "exportMode": "开启/关闭框选导出",
-    "closeAll": "快速关闭所有的活动面板"
+    "closeAll": "快速关闭所有的活动面板",
+    "featureToggles": "功能开关",
+    "inputCounter": "输入量指示圈"
+  },
+  "inputCounter": {
+    "hint_green": "放心，这条不长 😃",
+    "hint_yellow": "这条有点长哦 😤",
+    "hint_red": "这条太长啦 😣",
+    "ctx_green": "上下文充裕 🟢",
+    "ctx_yellow": "上下文过半 🟡",
+    "ctx_red": "该开新对话了 🔴",
+    "aria": "输入量指示器"
+  },
+  "autoScroll": {
+    "jumpToBottom": "跳到最新内容"
   }
 }

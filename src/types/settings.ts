@@ -1,4 +1,4 @@
-export type Language = 'en' | 'zh' | 'zh-TW';
+export type Language = 'en' | 'zh';
 
 export type FloatBallPosition = { x: number; y: number };
 

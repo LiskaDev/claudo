@@ -142,9 +142,23 @@
   },
   "shortcutsPanel": {
     "title": "Keyboard Shortcuts",
-    "search": "In-Conversation Search",
-    "promptLibrary": "Toggle Prompt Library",
-    "exportMode": "Toggle Cherry-Pick Export",
-    "closeAll": "Close active panels"
+    "search": "In-conversation search",
+    "promptLibrary": "Open prompt library",
+    "exportMode": "Toggle selection export",
+    "closeAll": "Close active panels",
+    "featureToggles": "Feature Switches",
+    "inputCounter": "Input Load Indicator"
+  },
+  "inputCounter": {
+    "hint_green": "This one's short 😃",
+    "hint_yellow": "This one's a bit long 😤",
+    "hint_red": "This one's really long 😣",
+    "ctx_green": "Context OK 🟢",
+    "ctx_yellow": "Context half-full 🟡",
+    "ctx_red": "Start new chat 🔴",
+    "aria": "Input size indicator"
+  },
+  "autoScroll": {
+    "jumpToBottom": "Jump to latest"
   }
 }
