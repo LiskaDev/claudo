@@ -84,7 +84,7 @@ export default function InputCounter() {
   const dotLevel = inputLevel(inputTokens);
   const dotColor = COLOR[dotLevel];
 
-  const right = window.innerWidth - rect.right + 14;
+  const right = window.innerWidth - rect.right + 20;
   // Inside the top-right corner of the input box border.
   const top = rect.top + 8;
 

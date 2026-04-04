@@ -115,7 +115,7 @@
     "exportMode": "開啟/關閉框選導出",
     "closeAll": "快速關閉所有的活動面板",
     "featureToggles": "功能開關",
-    "inputCounter": "輸入量指示圈"
+    "inputCounter": "對話儀表"
   },
   "inputCounter": {
     "hint_green": "放心輸入 😃",
@@ -124,7 +124,7 @@
     "ctx_green": "上下文充裕 🟢",
     "ctx_yellow": "上下文過半 🟡",
     "ctx_red": "該開新對話了 🔴",
-    "aria": "輸入量指示器"
+    "aria": "對話儀表"
   },
   "autoScroll": {
     "jumpToBottom": "跳至最新內容"

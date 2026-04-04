@@ -76,13 +76,13 @@ return () => { window.clearInterval(intervalId); detach(); };
 ```
 This pattern is used in `useInputCounter.ts` and `useContextCounter.ts`. Do **not** use a one-time attach with a fallback `MutationObserver` on `document.body` — it will silently break on navigation.
 
-## 10. Input Load Indicator Architecture
-The input indicator (`src/pages/content/components/InputCounter/`) is a **two-dimensional** indicator rendered as a fixed-position SVG inside the Shadow DOM.
+## 10. Context Gauge Architecture
+The context gauge (`src/pages/content/components/InputCounter/`) is a **two-dimensional** indicator rendered as a fixed-position SVG inside the Shadow DOM, anchored to the top-right corner of the chat input fieldset.
 
 | Dimension | Visual | Hook | Trigger |
 |---|---|---|---|
-| Current message size | Ring arc (stroke dashoffset) | `useInputCounter` | Every keystroke (via `input` event + MutationObserver) |
-| Total context size | Centre dot colour | `useContextCounter` | Only when new messages arrive (childList MutationObserver) |
+| Total context size | Ring arc (stroke dashoffset) | `useContextCounter` | Only when new messages arrive (childList MutationObserver) |
+| Current message size | Centre dot colour | `useInputCounter` | Every keystroke (via `input` event + MutationObserver) |
 
 **Performance contract:**
 - `useInputCounter`: throttled with `requestAnimationFrame` — at most 1 DOM read per frame during typing.

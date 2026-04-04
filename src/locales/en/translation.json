@@ -147,7 +147,7 @@
     "exportMode": "Toggle selection export",
     "closeAll": "Close active panels",
     "featureToggles": "Feature Switches",
-    "inputCounter": "Input Load Indicator"
+    "inputCounter": "Context Gauge"
   },
   "inputCounter": {
     "hint_green": "This one's short 😃",
@@ -156,7 +156,7 @@
     "ctx_green": "Context OK 🟢",
     "ctx_yellow": "Context half-full 🟡",
     "ctx_red": "Start new chat 🔴",
-    "aria": "Input size indicator"
+    "aria": "Context gauge"
   },
   "autoScroll": {
     "jumpToBottom": "Jump to latest"
