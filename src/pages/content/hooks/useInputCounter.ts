@@ -58,6 +58,19 @@ export const useInputCounter = (): InputCounterState => {
       const typedChars  = typedText.length;
       const typedTokens = typedChars === 0 ? 0 : estimateTokens(typedText);
 
+      // ── PASTED card existence check ────────────────────────────────────────
+      // Only include pastedRef when there are actual PASTED cards in the DOM.
+      // This prevents double-counting (small pastes stay in innerText AND pastedRef)
+      // and auto-clears pastedRef when cards are deleted.
+      const fieldset = el.closest('fieldset');
+      const hasPastedCards = fieldset
+        ? fieldset.querySelector('button[aria-label*="Pasted Text"]') !== null
+        : false;
+
+      if (!hasPastedCards) {
+        pastedRef.current = { chars: 0, tokens: 0 };
+      }
+
       setState({
         chars:  typedChars  + pastedRef.current.chars,
         tokens: typedTokens + pastedRef.current.tokens,
@@ -120,10 +133,20 @@ export const useInputCounter = (): InputCounterState => {
       el.addEventListener('input', handleInput);
       el.addEventListener('paste', handlePaste as EventListener, { capture: true });
 
-      // MutationObserver: keeps rect up-to-date when cards appear/disappear.
-      // Does NOT clear pastedRef — that is handleInput's sole responsibility.
-      const container = el.closest('form') ?? el.parentElement?.parentElement ?? el.parentElement;
-      moRef.current = new MutationObserver(scheduleUpdate);
+      // MutationObserver on the broader container:
+      //  - keeps rect up-to-date when cards appear/disappear
+      //  - detects PASTED card deletion by checking removedNodes for "PASTED" text
+      const container = el.closest('fieldset') ?? el.closest('form') ?? el.parentElement?.parentElement ?? el.parentElement;
+      moRef.current = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+          for (const node of Array.from(m.removedNodes)) {
+            if (node instanceof HTMLElement && node.textContent?.includes('PASTED')) {
+              pastedRef.current = { chars: 0, tokens: 0 };
+            }
+          }
+        }
+        scheduleUpdate();
+      });
       moRef.current.observe(el, { childList: true, subtree: true, characterData: true });
       if (container && container !== el) {
         moRef.current.observe(container, { childList: true, subtree: true });
