@@ -2,8 +2,8 @@
  * InputCounter/index.tsx
  * Purpose: A two-dimensional input indicator near the Claude chat input box.
  *
- *   Ring arc  (outer stroke, proportional) = current input size
- *   Center dot (solid fill, colour only)   = total conversation context level
+ *   Ring arc  (outer stroke, proportional) = conversation context level
+ *   Center dot (solid fill, colour only)   = current input size
  *
  * Hover 0.5 s → tooltip explains both dimensions in plain language.
  * Adapts to light / dark theme via Tailwind dark: utilities.
@@ -29,9 +29,12 @@ const STROKE_W = 2;
 const CIRC = 2 * Math.PI * R;
 const DOT_R = 3;           // centre dot — R=3 fills ~50 % of the inner ring space
 
-// ─── Input-size thresholds ────────────────────────────────────────────────────
+// ─── Input-size thresholds (for the centre dot) ──────────────────────────────
 const INPUT_YELLOW = 5_000;
 const INPUT_RED = 15_000;
+
+// ─── Context threshold (for the ring arc) ────────────────────────────────────
+const CTX_RED = 120_000; // matches RED_CTX in useContextCounter
 
 type Level = 'green' | 'yellow' | 'red';
 
@@ -52,7 +55,7 @@ export default function InputCounter() {
   const { t } = useTranslation();
   const [enabled] = useInputCounterEnabled();
   const { chars, tokens: inputTokens, rect } = useInputCounter();
-  const { level: ctxLevel } = useContextCounter();
+  const { level: ctxLevel, estimatedTokens: ctxTokens } = useContextCounter();
 
   const [hovered, setHovered] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,15 +75,18 @@ export default function InputCounter() {
   // object even when the element is off-screen, so check height > 0 as well).
   if (!rect || rect.height === 0) return null;
 
-  // When chars === 0 the ring arc stays at 0 % (only background track + dot visible)
-  const ringLevel = inputLevel(inputTokens);
-  const ringColor = COLOR[ringLevel];
-  const dotColor = COLOR[ctxLevel];
-  const fillPct = Math.min(inputTokens / INPUT_RED, 1);
+  // Ring = context level (the "fuel gauge" — important, slow-changing)
+  const ringColor = COLOR[ctxLevel];
+  const fillPct = Math.min(ctxTokens / CTX_RED, 1);
   const dashOffset = CIRC * (1 - fillPct);
 
-  const right = window.innerWidth - rect.right + 4;
-  const top = rect.bottom - RING_SIZE - 10;
+  // Dot = input size (fast-changing keystroke feedback)
+  const dotLevel = inputLevel(inputTokens);
+  const dotColor = COLOR[dotLevel];
+
+  const right = window.innerWidth - rect.right + 14;
+  // Inside the top-right corner of the input box border.
+  const top = rect.top + 8;
 
   return (
     <div
@@ -118,18 +124,18 @@ export default function InputCounter() {
             select-none
           "
         >
-          {t(`inputCounter.hint_${ringLevel}`)}
-          <span style={{ margin: '0 5px', opacity: 0.35 }}>·</span>
           {t(`inputCounter.ctx_${ctxLevel}`)}
+          <span style={{ margin: '0 5px', opacity: 0.35 }}>·</span>
+          {t(`inputCounter.hint_${dotLevel}`)}
         </div>
       )}
 
-      {/* ── SVG: ring (input) + centre dot (context) ── */}
+      {/* ── SVG: ring (context) + centre dot (input) ── */}
       <svg
         width={RING_SIZE}
         height={RING_SIZE}
         viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
-        aria-label={t(`inputCounter.hint_${ringLevel}`)}
+        aria-label={t(`inputCounter.ctx_${ctxLevel}`)}
         role="img"
       >
         {/* Ring background track */}
@@ -140,7 +146,7 @@ export default function InputCounter() {
           strokeWidth={STROKE_W}
           opacity={0.22}
         />
-        {/* Ring filled arc (input size) */}
+        {/* Ring filled arc (context level) */}
         <circle
           cx={CX} cy={CY} r={R}
           fill="none"
@@ -152,7 +158,7 @@ export default function InputCounter() {
           transform={`rotate(-90 ${CX} ${CY})`}
           style={{ transition: 'stroke-dashoffset 0.35s ease, stroke 0.3s ease' }}
         />
-        {/* Centre dot (context level) */}
+        {/* Centre dot (input size) */}
         <circle
           cx={CX} cy={CY} r={DOT_R}
           fill={dotColor}

@@ -119,10 +119,16 @@ export const useInputCounter = (): InputCounterState => {
         clearPasteStorage();
       }
 
+      // Use the fieldset's rect (the visible bordered container) for positioning.
+      // The inner chat-input div can scroll and its rect.top flies off-screen,
+      // but the fieldset's rect always reflects the visible border edges.
+      const posFieldset = el.closest('fieldset');
+      const posRect = posFieldset?.getBoundingClientRect() ?? el.getBoundingClientRect();
+
       setState({
         chars:  typedChars  + pastedChars,
         tokens: typedTokens + pastedTokens,
-        rect:   el.getBoundingClientRect(),
+        rect:   posRect,
       });
     };
 
