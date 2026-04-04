@@ -135,6 +135,113 @@ Perfect for when you want to focus without the usage rings drawing your attentio
 
 ---
 
+## 🏗️ Architecture
+
+### Tech Stack
+
+| Layer | Technology |
+|---|---|
+| UI Framework | React 19 + TypeScript 5 |
+| Build Tool | Vite 6 + @crxjs/vite-plugin |
+| Styling | Tailwind CSS v4 |
+| i18n | react-i18next (EN / ZH / ZH-TW) |
+| Storage | `chrome.storage.local` via a typed service layer |
+| Target | Chrome / Edge (Manifest V3) |
+
+### Extension Process Model
+
+A Chrome extension runs in three separate execution contexts, each with different permissions:
+
+```
+┌─────────────────────────────────────────┐
+│           Browser (Host)                │
+│                                         │
+│  ┌──────────────┐  ┌────────────────┐   │
+│  │  Background  │  │  Options Page  │   │
+│  │  (SW)        │  │  (future)      │   │
+│  │  index.ts    │  │  React SPA     │   │
+│  └──────┬───────┘  └────────────────┘   │
+│         │ chrome.runtime.sendMessage    │
+│  ┌──────▼──────────────────────────┐   │
+│  │         Content Script          │   │
+│  │  Injected into claude.ai tabs   │   │
+│  │        index.tsx (entry)        │   │
+│  │   ┌─────────────────────────┐   │   │
+│  │   │  Shadow DOM (#claudo-   │   │   │
+│  │   │  root-host → #__root)   │   │   │
+│  │   │  All React UI lives here│   │   │
+│  │   └─────────────────────────┘   │   │
+│  └─────────────────────────────────┘   │
+└─────────────────────────────────────────┘
+```
+
+### Shadow DOM Isolation
+
+The most important architectural decision: **all React UI is mounted inside a Shadow DOM**, not directly into Claude's `<body>`. This achieves two things:
+
+1. **CSS containment** — Claudo's Tailwind styles cannot leak out and break Claude's UI.
+2. **Stability** — Claude's own React re-renders cannot touch or unmount Claudo's tree.
+
+The host element injected into Claude's page is `#claudo-root-host`. Inside it lives the Shadow Root, and inside that is `#__root` — the React mount point and the Tailwind dark-mode scope root.
+
+Dark mode is synced by a `MutationObserver` that watches Claude's `<html>` element and mirrors its `class`/`data-theme`/`data-mode` attributes onto `#__root`.
+
+### Source Directory
+
+```
+src/
+├── constants/
+│   └── selectors.ts          # All Claude DOM selectors (single source of truth)
+├── locales/
+│   ├── en/translation.json
+│   ├── zh/translation.json
+│   └── zh-TW/translation.json
+├── services/
+│   ├── i18n.ts               # i18next initialization
+│   └── storage.ts            # Typed chrome.storage.local wrapper
+├── types/                    # Shared TypeScript interfaces
+└── pages/
+    ├── background/
+    │   └── index.ts          # Service Worker (minimal — message routing)
+    ├── options/              # Extension options page (reserved)
+    └── content/              # Main content script injected into claude.ai
+        ├── index.tsx         # Entry: mounts Shadow DOM, starts MutationObservers
+        ├── style.css         # Base styles injected into Shadow Root
+        ├── hooks/            # All React custom hooks
+        │   ├── useConversations.ts   # Parses Claude's conversation list
+        │   ├── useDomHealth.ts       # Monitors DOM selector validity
+        │   ├── useDraggable.ts       # FloatBall physics drag logic
+        │   ├── useExport.ts          # Export mode state machine
+        │   ├── usePromptLibrary.ts   # Prompt CRUD + chrome.storage sync
+        │   ├── useSidebarOpen.ts     # Detects Claude sidebar open/close
+        │   ├── useTimeline.ts        # Timeline scroll & position state
+        │   └── useWidthControl.ts    # Chat width slider + persistence
+        ├── services/         # Content-side service modules
+        │   ├── exportExtractors.ts   # Scrapes message DOM → clean data
+        │   ├── exportFormatters.ts   # Data → Markdown / TXT strings
+        │   ├── advancedExport.ts     # PDF / batch export pipeline
+        │   ├── exportTypes.ts        # Shared export TypeScript types
+        │   └── storage.ts            # Content-script storage helpers
+        ├── utils/
+        │   └── dom.ts                # DOM utility helpers
+        └── components/
+            ├── FloatBall/            # Draggable floating command center
+            │   ├── index.tsx         # Main FloatBall component
+            │   ├── UsageRings.tsx    # Concentric usage ring renderer
+            │   ├── useUsageRings.ts  # Usage data polling hook
+            │   ├── panelRegistry.ts  # Panel slot → component mapping
+            │   └── panels/
+            │       ├── PromptPanel.tsx     # Prompt library UI
+            │       ├── WidthPanel.tsx      # Width control slider
+            │       ├── LanguagePanel.tsx   # Language switcher
+            │       └── ShortcutsPanel.tsx  # Keyboard shortcut reference
+            ├── ExportHub/            # Message selection & export UI
+            ├── SearchBar/            # In-page search (CSS Custom Highlight API)
+            └── Timeline/             # DeepSeek-style sidebar navigator
+```
+
+---
+
 ## 🛠️ Installation
 
 ### Install from Store
@@ -272,6 +379,114 @@ Claude 默认布局在宽屏上浪费空间。拖动宽度滑块，把对话区�
 | `Alt + X` | 开关选段导出模式 |
 | `Shift + 点击` | 范围选择消息（导出模式下） |
 | `Esc` | 关闭所有面板 |
+
+---
+
+## 🏗️ 项目架构
+
+### 技术选型
+
+| 层级 | 技术 |
+|---|---|
+| UI 框架 | React 19 + TypeScript 5 |
+| 构建工具 | Vite 6 + @crxjs/vite-plugin |
+| 样式 | Tailwind CSS v4 |
+| 国际化 | react-i18next（EN / ZH / ZH-TW）|
+| 数据存储 | `chrome.storage.local`（带类型的服务封装层）|
+| 目标平台 | Chrome / Edge（Manifest V3）|
+
+### 插件进程模型
+
+Chrome 插件在三个相互隔离的执行上下文中运行，各自拥有不同的权限：
+
+```
+┌─────────────────────────────────────────┐
+│              浏览器（宿主）              │
+│                                         │
+│  ┌──────────────┐  ┌────────────────┐   │
+│  │  Background  │  │  Options 页面  │   │
+│  │  Service     │  │  （预留）      │   │
+│  │  Worker      │  │  React SPA     │   │
+│  └──────┬───────┘  └────────────────┘   │
+│         │ chrome.runtime.sendMessage    │
+│  ┌──────▼──────────────────────────┐   │
+│  │         Content Script          │   │
+│  │      注入到 claude.ai 标签页    │   │
+│  │       index.tsx（入口）         │   │
+│  │   ┌─────────────────────────┐   │   │
+│  │   │  Shadow DOM             │   │   │
+│  │   │  #claudo-root-host      │   │   │
+│  │   │  → #__root              │   │   │
+│  │   │  所有 React UI 都在这里  │   │   │
+│  │   └─────────────────────────┘   │   │
+│  └─────────────────────────────────┘   │
+└─────────────────────────────────────────┘
+```
+
+### Shadow DOM 隔离机制
+
+**最核心的架构决策：所有 React UI 都挂载在 Shadow DOM 内部**，而不是直接注入到 Claude 的 `<body>`。这带来两个关键好处：
+
+1. **CSS 隔离** — Claudo 的 Tailwind 样式不会泄漏出去破坏 Claude 的原生 UI。
+2. **稳定性** — Claude 自身的 React 重渲染无法触碰或卸载 Claudo 的 React 树。
+
+注入到 Claude 页面的宿主元素是 `#claudo-root-host`，其内部的 Shadow Root 里挂着 `#__root`——这同时是 React 挂载点和 Tailwind 暗色模式的作用域根节点。
+
+暗色同步方案：通过一个 `MutationObserver` 监听 Claude 的 `<html>` 元素，把 `class`、`data-theme`、`data-mode` 属性实时镜像同步到内部的 `#__root` 上，实现 `dark:` 系列样式的正确触发。
+
+### 源码目录结构
+
+```
+src/
+├── constants/
+│   └── selectors.ts          # 所有 Claude DOM 选择器（唯一数据来源）
+├── locales/
+│   ├── en/translation.json
+│   ├── zh/translation.json
+│   └── zh-TW/translation.json
+├── services/
+│   ├── i18n.ts               # i18next 初始化
+│   └── storage.ts            # 带类型的 chrome.storage.local 访问封装
+├── types/                    # 共享 TypeScript 接口定义
+└── pages/
+    ├── background/
+    │   └── index.ts          # Service Worker（轻量，仅消息路由）
+    ├── options/              # 扩展选项页（预留）
+    └── content/              # 注入 claude.ai 的主 Content Script
+        ├── index.tsx         # 入口：挂载 Shadow DOM，启动 MutationObserver
+        ├── style.css         # 注入 Shadow Root 的基础样式
+        ├── hooks/            # 所有 React 自定义 Hook
+        │   ├── useConversations.ts   # 解析 Claude 对话列表
+        │   ├── useDomHealth.ts       # 监控 DOM 选择器有效性
+        │   ├── useDraggable.ts       # 悬浮球物理拖拽逻辑
+        │   ├── useExport.ts          # 导出模式状态机
+        │   ├── usePromptLibrary.ts   # 提示词 CRUD + storage 同步
+        │   ├── useSidebarOpen.ts     # 检测 Claude 侧边栏开关状态
+        │   ├── useTimeline.ts        # 时间线滚动与位置状态
+        │   └── useWidthControl.ts    # 宽度滑块 + 持久化
+        ├── services/         # Content Script 侧服务模块
+        │   ├── exportExtractors.ts   # 抓取消息 DOM → 结构化数据
+        │   ├── exportFormatters.ts   # 数据 → Markdown / TXT 字符串
+        │   ├── advancedExport.ts     # PDF / 批量导出管线
+        │   ├── exportTypes.ts        # 导出相关 TypeScript 类型
+        │   └── storage.ts            # Content Script 存储辅助函数
+        ├── utils/
+        │   └── dom.ts                # DOM 工具函数
+        └── components/
+            ├── FloatBall/            # 可拖拽悬浮控制中心
+            │   ├── index.tsx         # 主 FloatBall 组件
+            │   ├── UsageRings.tsx    # 同心用量圆环渲染器
+            │   ├── useUsageRings.ts  # 用量数据轮询 Hook
+            │   ├── panelRegistry.ts  # 面板插槽 → 组件映射表
+            │   └── panels/
+            │       ├── PromptPanel.tsx     # 提示词库 UI
+            │       ├── WidthPanel.tsx      # 宽度控制滑块
+            │       ├── LanguagePanel.tsx   # 语言切换器
+            │       └── ShortcutsPanel.tsx  # 键盘快捷键参考
+            ├── ExportHub/            # 消息选择 & 导出 UI
+            ├── SearchBar/            # 对话内搜索（CSS Custom Highlight API）
+            └── Timeline/             # 极简侧边栏时间线导航器
+```
 
 ---
 

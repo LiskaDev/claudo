@@ -17,20 +17,25 @@ function formatReset(iso: string, t: TFunction): string {
   if (!iso) return '';
   const date = new Date(iso);
   const now = new Date();
-  const diffMs = date.getTime() - now.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffHours < 24) {
-    const h = date.getHours().toString().padStart(2, '0');
-    const m = date.getMinutes().toString().padStart(2, '0');
+  // 比较日历日期（年月日），而不是比较小时数差
+  // 原因：22小时后可能是明天，用"<24小时"判断会把明天误显示为今天
+  const todayStr    = now.toDateString();
+  const tomorrowStr = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toDateString();
+  const resetStr    = date.toDateString();
+
+  const h = date.getHours().toString().padStart(2, '0');
+  const m = date.getMinutes().toString().padStart(2, '0');
+
+  if (resetStr === todayStr) {
     return t('usageRings.resetToday', { time: `${h}:${m}` });
   }
-  if (diffDays < 2) {
-    const h = date.getHours().toString().padStart(2, '0');
-    const m = date.getMinutes().toString().padStart(2, '0');
+  if (resetStr === tomorrowStr) {
     return t('usageRings.resetTomorrow', { time: `${h}:${m}` });
   }
+
+  // 超过明天：计算剩余天数
+  const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   return t('usageRings.resetDays', { days: diffDays });
 }
 
