@@ -44,3 +44,9 @@ export const ASSISTANT_COPY_BUTTON_SELECTOR = 'button[data-testid="action-bar-co
 
 // Code element inside pre blocks when extracting markdown.
 export const CODE_BLOCK_CONTENT_SELECTOR = 'code';
+
+// ─── Context Gauge (InputCounter) ────────────────────────────────────────────
+// Fieldset wrapping the chat input area (contains editable div + pasted cards).
+export const CHAT_INPUT_FIELDSET_SELECTOR = 'fieldset';
+// Pasted Text card button inside the fieldset.
+export const PASTED_CARD_SELECTOR = 'button[aria-label*="Pasted Text"]';

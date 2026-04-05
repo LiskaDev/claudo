@@ -5,36 +5,38 @@
  *   Ring arc  (outer stroke, proportional) = conversation context level
  *   Center dot (solid fill, colour only)   = current input size
  *
+ * Rendered via createPortal into a container that the hook appends directly
+ * inside Claude's fieldset element (position: absolute), so the ring is
+ * permanently locked to the top-right corner regardless of input height.
+ *
  * Hover 0.5 s → tooltip explains both dimensions in plain language.
- * Adapts to light / dark theme via Tailwind dark: utilities.
+ *
+ * Because the portal target lives in Claude's DOM (outside our Shadow Root),
+ * all styles are pure inline — Tailwind classes would not apply.
  *
  * Created: 2026-04-04
  */
 
 import React, { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useInputCounter } from '../../hooks/useInputCounter';
-import { useContextCounter } from '../../hooks/useContextCounter';
+import { useContextCounter, RED_CTX } from '../../hooks/useContextCounter';
 import { useInputCounterEnabled } from '../../hooks/useInputCounterEnabled';
 
 // ─── Ring geometry ────────────────────────────────────────────────────────────
-// 18 px bounding box.  R=7, STROKE_W=2 → stroke/radius ratio = 29 %
-// This gives a proper thin-ring look (vs. the previous fat blob).
-// Outer edge: 7 + 1 = 8 px ≤ 9 (centre), 1 px margin — just fits.
 const RING_SIZE = 18;
 const CX = RING_SIZE / 2;  // 9
 const CY = RING_SIZE / 2;  // 9
 const R = 7;
 const STROKE_W = 2;
 const CIRC = 2 * Math.PI * R;
-const DOT_R = 3;           // centre dot — R=3 fills ~50 % of the inner ring space
+const DOT_R = 3;
 
 // ─── Input-size thresholds (for the centre dot) ──────────────────────────────
 const INPUT_YELLOW = 5_000;
 const INPUT_RED = 15_000;
 
-// ─── Context threshold (for the ring arc) ────────────────────────────────────
-const CTX_RED = 120_000; // matches RED_CTX in useContextCounter
 
 type Level = 'green' | 'yellow' | 'red';
 
@@ -50,11 +52,42 @@ const COLOR: Record<Level, string> = {
   red: '#E24B4A',
 };
 
+/** Detect Claude's dark mode from its <html> element */
+function isDarkMode(): boolean {
+  const html = document.documentElement;
+  return (
+    html.classList.contains('dark') ||
+    html.getAttribute('data-mode') === 'dark' ||
+    html.getAttribute('data-theme') === 'dark'
+  );
+}
+
+// ─── Tooltip inline styles (no Tailwind — portal is outside Shadow DOM) ──────
+function tooltipStyle(dark: boolean): React.CSSProperties {
+  return {
+    position: 'absolute',
+    bottom: `${RING_SIZE + 6}px`,
+    right: 0,
+    whiteSpace: 'nowrap',
+    background: dark ? 'rgba(30, 30, 30, 0.92)' : 'rgba(244, 244, 245, 1)',
+    backdropFilter: 'blur(8px)',
+    border: `1px solid ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(212,212,216,1)'}`,
+    borderRadius: '12px',
+    padding: '6px 10px',
+    fontSize: '14px',
+    lineHeight: '1',
+    color: dark ? 'rgba(255,255,255,0.88)' : 'rgba(63,63,70,1)',
+    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)',
+    pointerEvents: 'none' as const,
+    userSelect: 'none' as const,
+  };
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function InputCounter() {
   const { t } = useTranslation();
   const [enabled] = useInputCounterEnabled();
-  const { chars, tokens: inputTokens, rect } = useInputCounter();
+  const { chars, tokens: inputTokens, portalTarget } = useInputCounter();
   const { level: ctxLevel, estimatedTokens: ctxTokens } = useContextCounter();
 
   const [hovered, setHovered] = useState(false);
@@ -69,61 +102,32 @@ export default function InputCounter() {
     setHovered(false);
   };
 
-  // Guard: toggle off → never render
-  if (!enabled) return null;
-  // Guard: input box not found yet, or not yet laid out (rect is always a DOMRect
-  // object even when the element is off-screen, so check height > 0 as well).
-  if (!rect || rect.height === 0) return null;
+  // Guard: toggle off or portal not ready
+  if (!enabled || !portalTarget) return null;
 
-  // Ring = context level (the "fuel gauge" — important, slow-changing)
+  // Ring = context level (the "fuel gauge")
   const ringColor = COLOR[ctxLevel];
-  const fillPct = Math.min(ctxTokens / CTX_RED, 1);
+  const fillPct = Math.min(ctxTokens / RED_CTX, 1);
   const dashOffset = CIRC * (1 - fillPct);
 
-  // Dot = input size (fast-changing keystroke feedback)
+  // Dot = input size (keystroke feedback)
   const dotLevel = inputLevel(inputTokens);
   const dotColor = COLOR[dotLevel];
 
-  const right = window.innerWidth - rect.right + 20;
-  // Inside the top-right corner of the input box border.
-  const top = rect.top + 8;
+  const dark = isDarkMode();
 
-  return (
+  const content = (
     <div
       style={{
-        position: 'fixed',
-        right: `${right}px`,
-        top: `${top}px`,
-        zIndex: 9999,
-        pointerEvents: 'auto',
-        cursor: 'default',
         overflow: 'visible',
+        cursor: 'default',
       }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* ── Tooltip ── */}
       {hovered && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: `${RING_SIZE + 6}px`,
-            right: 0,
-            whiteSpace: 'nowrap',
-          }}
-          className="
-            bg-zinc-100 dark:bg-[#1e1e1e]/90
-            backdrop-blur-sm
-            border border-zinc-300 dark:border-white/10
-            rounded-lg
-            px-2.5 py-1.5
-            text-[13px] leading-none
-            text-zinc-700 dark:!text-white/88
-            shadow-md
-            pointer-events-none
-            select-none
-          "
-        >
+        <div style={tooltipStyle(dark)}>
           {t(`inputCounter.ctx_${ctxLevel}`)}
           <span style={{ margin: '0 5px', opacity: 0.35 }}>·</span>
           {t(`inputCounter.hint_${dotLevel}`)}
@@ -167,4 +171,6 @@ export default function InputCounter() {
       </svg>
     </div>
   );
+
+  return createPortal(content, portalTarget);
 }

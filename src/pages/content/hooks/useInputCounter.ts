@@ -1,7 +1,8 @@
 /**
  * useInputCounter.ts
- * Tracks Claude chat input content and exposes character/token counts
- * plus the input element's DOMRect. Re-attaches on SPA navigation.
+ * Tracks Claude chat input content and exposes character/token counts.
+ * Creates a portal container inside the fieldset for stable positioning.
+ * Re-attaches on SPA navigation.
  *
  * Two sources of content:
  *  1. Typed text — read from el.innerText on every change.
@@ -16,15 +17,27 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { CHAT_INPUT_SELECTOR } from '@src/constants/selectors';
+import {
+  CHAT_INPUT_SELECTOR,
+  CHAT_INPUT_FIELDSET_SELECTOR,
+  PASTED_CARD_SELECTOR,
+} from '@src/constants/selectors';
+import {
+  PASTED_LINES_RE,
+  savePasteMap,
+  loadPasteMap,
+  clearPasteStorage,
+  usePasteDataMap,
+} from './usePasteTracker';
 
 export interface InputCounterState {
   chars: number;
   tokens: number;
-  rect: DOMRect | null;
+  /** Container element appended inside the fieldset. Use with createPortal. */
+  portalTarget: HTMLElement | null;
 }
 
-const EMPTY_STATE: InputCounterState = { chars: 0, tokens: 0, rect: null };
+const EMPTY_STATE: InputCounterState = { chars: 0, tokens: 0, portalTarget: null };
 
 /**
  * Token estimator for mixed CJK + Latin text.
@@ -37,65 +50,38 @@ export const estimateTokens = (text: string): number => {
   return Math.max(1, Math.round(cjk + rest / 3.5));
 };
 
-/** Regex to extract line count from PASTED card aria-label, e.g. "pasted, 361 lines" */
-const PASTED_LINES_RE = /(\d[\d,]*)\s*line/;
-
-/** sessionStorage key for persisting paste data across page refreshes */
-const PASTE_STORAGE_KEY = 'claudo_paste_data';
-
-function savePasteMap(map: Map<number, { chars: number; tokens: number }>) {
-  try {
-    const obj: Record<string, { chars: number; tokens: number }> = {};
-    map.forEach((v, k) => { obj[k] = v; });
-    sessionStorage.setItem(PASTE_STORAGE_KEY, JSON.stringify(obj));
-  } catch { /* quota exceeded or disabled — ignore */ }
-}
-
-function loadPasteMap(map: Map<number, { chars: number; tokens: number }>) {
-  try {
-    const raw = sessionStorage.getItem(PASTE_STORAGE_KEY);
-    if (!raw) return;
-    const obj = JSON.parse(raw) as Record<string, { chars: number; tokens: number }>;
-    for (const [k, v] of Object.entries(obj)) {
-      map.set(parseInt(k, 10), v);
-    }
-  } catch { /* corrupted data — ignore */ }
-}
-
-function clearPasteStorage() {
-  try { sessionStorage.removeItem(PASTE_STORAGE_KEY); } catch { /* ignore */ }
-}
-
 export const useInputCounter = (): InputCounterState => {
   const [state, setState] = useState<InputCounterState>(EMPTY_STATE);
 
-  const rafRef     = useRef<number>(0);
+  const rafRef = useRef<number>(0);
   const inputElRef = useRef<HTMLElement | null>(null);
-  const moRef      = useRef<MutationObserver | null>(null);
-  const roRef      = useRef<ResizeObserver | null>(null);
+  const moRef = useRef<MutationObserver | null>(null);
+  const roRef = useRef<ResizeObserver | null>(null);
 
-  // Per-paste clipboard data, keyed by line count (extracted from clipboard text).
-  // When readInput scans the DOM for PASTED cards, it extracts line count from
-  // each card's aria-label and looks up the matching entry here.
-  const pasteDataMap = useRef<Map<number, { chars: number; tokens: number }>>(new Map());
+  const pasteDataMap = usePasteDataMap();
+  const portalRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    // ── Compute and publish the latest counts ────────────────────────────────
+    /**
+     * Reads the current input element's text content and scans for PASTED cards.
+     * Combines both sources into a single {chars, tokens} state update.
+     * Called on every requestAnimationFrame when input changes are detected.
+     */
     const readInput = () => {
       const el = inputElRef.current;
       if (!el) return;
 
-      const typedText   = (el.innerText ?? el.textContent ?? '').trim();
-      const typedChars  = typedText.length;
+      const typedText = (el.innerText ?? el.textContent ?? '').trim();
+      const typedChars = typedText.length;
       const typedTokens = typedChars === 0 ? 0 : estimateTokens(typedText);
 
       // ── Sum up PASTED cards by looking up each card's line count in our map ─
-      const fieldset = el.closest('fieldset');
+      const fieldset = el.closest(CHAT_INPUT_FIELDSET_SELECTOR);
       const pastedCards = fieldset
-        ? Array.from(fieldset.querySelectorAll<HTMLElement>('button[aria-label*="Pasted Text"]'))
+        ? Array.from(fieldset.querySelectorAll<HTMLElement>(PASTED_CARD_SELECTOR))
         : [];
 
-      let pastedChars  = 0;
+      let pastedChars = 0;
       let pastedTokens = 0;
 
       if (pastedCards.length > 0) {
@@ -106,7 +92,7 @@ export const useInputCounter = (): InputCounterState => {
             const lineCount = parseInt(lineMatch[1].replace(/,/g, ''), 10);
             const data = pasteDataMap.current.get(lineCount);
             if (data) {
-              pastedChars  += data.chars;
+              pastedChars += data.chars;
               pastedTokens += data.tokens;
             }
             // No fallback: if we don't have exact clipboard data (e.g. after
@@ -119,16 +105,10 @@ export const useInputCounter = (): InputCounterState => {
         clearPasteStorage();
       }
 
-      // Use the fieldset's rect (the visible bordered container) for positioning.
-      // The inner chat-input div can scroll and its rect.top flies off-screen,
-      // but the fieldset's rect always reflects the visible border edges.
-      const posFieldset = el.closest('fieldset');
-      const posRect = posFieldset?.getBoundingClientRect() ?? el.getBoundingClientRect();
-
       setState({
-        chars:  typedChars  + pastedChars,
+        chars: typedChars + pastedChars,
         tokens: typedTokens + pastedTokens,
-        rect:   posRect,
+        portalTarget: portalRef.current,
       });
     };
 
@@ -146,7 +126,7 @@ export const useInputCounter = (): InputCounterState => {
       if (text.length > 0) {
         const lineCount = text.split('\n').length;
         pasteDataMap.current.set(lineCount, {
-          chars:  text.length,
+          chars: text.length,
           tokens: estimateTokens(text),
         });
         savePasteMap(pasteDataMap.current);
@@ -154,7 +134,11 @@ export const useInputCounter = (): InputCounterState => {
       scheduleUpdate();
     };
 
-    // ── Detach from the current element ─────────────────────────────────────
+    /**
+     * Removes all event listeners, observers, and the portal container.
+     * Resets state to EMPTY. Called when navigating away or when the input
+     * element disappears from the DOM.
+     */
     const detach = () => {
       const el = inputElRef.current;
       if (el) {
@@ -163,12 +147,21 @@ export const useInputCounter = (): InputCounterState => {
       }
       moRef.current?.disconnect(); moRef.current = null;
       roRef.current?.disconnect(); roRef.current = null;
+      // Remove portal container from Claude's DOM
+      if (portalRef.current) {
+        portalRef.current.remove();
+        portalRef.current = null;
+      }
       inputElRef.current = null;
       pasteDataMap.current.clear();
       setState(EMPTY_STATE);
     };
 
-    // ── Attach to the chat input element ────────────────────────────────────
+    /**
+     * Binds event listeners, observers, and the portal container to the given
+     * chat input element. Idempotent: no-op if already attached to the same el.
+     * Called by the 500ms SPA navigation poll loop.
+     */
     const attach = (el: HTMLElement) => {
       if (inputElRef.current === el) return;
       detach();
@@ -177,11 +170,27 @@ export const useInputCounter = (): InputCounterState => {
       loadPasteMap(pasteDataMap.current);
 
       inputElRef.current = el;
+
+      // ── Create portal container inside the fieldset ──────────────────────
+      const fieldset = el.closest(CHAT_INPUT_FIELDSET_SELECTOR);
+      if (fieldset instanceof HTMLElement) {
+        // Ensure fieldset is a containing block for absolute positioning
+        const computed = window.getComputedStyle(fieldset);
+        if (computed.position === 'static') {
+          fieldset.style.position = 'relative';
+        }
+        const container = document.createElement('div');
+        container.setAttribute('data-claudo-gauge', 'true');
+        container.style.cssText = 'position:absolute;top:8px;right:20px;z-index:9999;pointer-events:auto;';
+        fieldset.appendChild(container);
+        portalRef.current = container;
+      }
+
       el.addEventListener('input', scheduleUpdate);
       el.addEventListener('paste', handlePaste as EventListener, { capture: true });
 
       // MutationObserver on the fieldset (contains both editable div and PASTED cards)
-      const container = el.closest('fieldset') ?? el.closest('form') ?? el.parentElement?.parentElement ?? el.parentElement;
+      const container = el.closest(CHAT_INPUT_FIELDSET_SELECTOR) ?? el.parentElement;
       moRef.current = new MutationObserver(scheduleUpdate);
       moRef.current.observe(el, { childList: true, subtree: true, characterData: true });
       if (container && container !== el) {

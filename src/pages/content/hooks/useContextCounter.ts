@@ -36,7 +36,7 @@ export interface ContextCounterState {
 }
 
 const YELLOW_CTX =  40_000;
-const RED_CTX    = 120_000;
+export const RED_CTX    = 120_000;
 
 const EMPTY: ContextCounterState = { estimatedTokens: 0, level: 'green' };
 
