@@ -35,8 +35,10 @@ export interface ContextCounterState {
   level: ContextLevel;
 }
 
-const YELLOW_CTX =  40_000;
-export const RED_CTX    = 120_000;
+const YELLOW_CTX =  80_000;
+export const RED_CTX    = 150_000;
+/** Ring arc fills to 100% at this value (Claude's context window size). */
+export const MAX_CTX    = 200_000;
 
 const EMPTY: ContextCounterState = { estimatedTokens: 0, level: 'green' };
 

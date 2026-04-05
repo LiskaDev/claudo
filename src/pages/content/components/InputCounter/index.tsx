@@ -21,7 +21,7 @@ import React, { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useInputCounter } from '../../hooks/useInputCounter';
-import { useContextCounter, RED_CTX } from '../../hooks/useContextCounter';
+import { useContextCounter, MAX_CTX } from '../../hooks/useContextCounter';
 import { useInputCounterEnabled } from '../../hooks/useInputCounterEnabled';
 
 // ─── Ring geometry ────────────────────────────────────────────────────────────
@@ -107,7 +107,7 @@ export default function InputCounter() {
 
   // Ring = context level (the "fuel gauge")
   const ringColor = COLOR[ctxLevel];
-  const fillPct = Math.min(ctxTokens / RED_CTX, 1);
+  const fillPct = Math.min(ctxTokens / MAX_CTX, 1);
   const dashOffset = CIRC * (1 - fillPct);
 
   // Dot = input size (keystroke feedback)
