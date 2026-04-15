@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Claudo",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Claudo: The ultimate Claude UI Overhaul. Standalone FloatBall Nexus and Anti-React Export Engine.",
   "options_ui": {
     "page": "src/pages/options/index.html"
