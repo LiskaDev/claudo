@@ -120,7 +120,7 @@ const PanelMenu = ({ side, onClose, onSelectPanel, ballY }: PanelMenuProps) => {
               {t('shortcutsPanel.inputCounter', '输入量指示圈')}
             </span>
             <span
-              className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ${
+              className={`relative inline-flex items-center h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ${
                 inputCounterOn ? 'bg-[#1D9E75]' : '!bg-zinc-300 dark:!bg-zinc-600'
               }`}
             >

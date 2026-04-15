@@ -10,14 +10,23 @@ export interface UsageData {
 async function fetchOrgId(): Promise<string | null> {
   try {
     const res = await fetch('https://claude.ai/api/organizations', { credentials: 'include' });
+    if (!res.ok) return null;
     const data = await res.json();
-    return data?.[0]?.uuid ?? null;
+    // Some users have multiple orgs (e.g. an API org + a Pro/chat org).
+    // Blindly taking [0] can land on an API-only org that returns 403 for /usage.
+    // Priority: claude_pro → chat → first org as fallback.
+    const org =
+      data.find((o: { capabilities?: string[] }) => o.capabilities?.includes('claude_pro')) ??
+      data.find((o: { capabilities?: string[] }) => o.capabilities?.includes('chat')) ??
+      data[0];
+    return org?.uuid ?? null;
   } catch { return null; }
 }
 
 async function fetchUsage(orgId: string): Promise<UsageData | null> {
   try {
     const res = await fetch(`https://claude.ai/api/organizations/${orgId}/usage`, { credentials: 'include' });
+    if (!res.ok) return null; // 403 = org without /usage permission; gracefully hide rings
     const data = await res.json();
     return {
       fiveHour: data.five_hour?.utilization ?? 0,
