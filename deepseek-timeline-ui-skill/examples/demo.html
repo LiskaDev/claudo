@@ -662,12 +662,26 @@
 
     // =======================================================
     // SCROLL TO MESSAGE NODE (SKILL Rule 6)
+    // Fix: scrollIntoView({ block:'start' }) doesn't know about fixed headers.
+    // It aligns the element to the top of the VIEWPORT, not below the topbar.
+    // Solution: manually compute scroll position = element's page offset
+    //           minus topbar height minus a small breathing gap.
     // =======================================================
     function scrollToNode(i) {
       const msgEl = document.getElementById(nodes[i].id);
       if (!msgEl) return;
-      // SKILL Rule 6: 'instant' — not 'smooth'
-      msgEl.scrollIntoView({ behavior: 'instant', block: 'start' });
+
+      const topbar       = document.querySelector('.topbar');
+      const topbarHeight = topbar ? topbar.offsetHeight : 0;
+      const gap          = 16; // breathing room below the topbar (px)
+
+      // getBoundingClientRect().top = distance from current viewport top.
+      // Add window.scrollY to get absolute page position.
+      // Then subtract topbar height + gap so the element lands BELOW the bar.
+      const targetY = msgEl.getBoundingClientRect().top + window.scrollY - topbarHeight - gap;
+
+      // SKILL Rule 6: behavior 'instant' — no sluggish cinematic scrolling
+      window.scrollTo({ top: Math.max(0, targetY), behavior: 'instant' });
       setActiveIndex(i);
     }
 
