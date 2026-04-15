@@ -41,14 +41,11 @@ When instructed to create a "DeepSeek Timeline" or "DeepSeek style sidebar", stu
 ## 6. Instant Scroll Navigation
 - DeepSeek prioritizes speed over sluggish cinematic scrolling when fetching extremely long histories.
 - Do not use `behavior: 'smooth'` for jumping between historical chat nodes. The navigation must be crisp and instantaneous (`behavior: 'instant'`). 
-###  架构进阶（高级特性增强）
+## 7. 架构进阶（高级特性增强）
 除了核心的 UI 设计，该 Skill 还被强化了最严苛的前端架构：
-1. **渲染把控 (Event Loop & LayoutReflow)**：放弃平庸的 useEffect，采用 useLayoutEffect 层叠加宽强制的**双缓存重绘帧缓冲区 
-equestAnimationFrame**，确保滚动动画仅在页面完全重排计算完毕后触发，从物理级别断绝高度抓错闪跳。
-2. **极客级无障碍辅助支持 (Native A11y)**：不仅仅是视觉，代码完全贯彻了 W3C 的 WAI-ARIA 隐形标识体系。手动对齐拦截键盘流：注入 
-ole="button"、
-ole="navigation" 与最核心的 	abIndex={0} 焦点链，并通过 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') }} 手写键盘回车事件，赋予纯 <div> 原生按钮的完整尊严。
-3. **隔离式复现 (Memoization Rendering)**：以 useMemo 缓存机制接管动态拼接的大段字符串（如 linear-gradient 的坐标更新掩码），切断 React 对深层字面量的滥用重绘链路。
+1. **渲染把控 (Event Loop & LayoutReflow)**：放弃平庸的 useEffect，采用 `useLayoutEffect` 叠加 `requestAnimationFrame` 双缓冲帧，确保滚动动画仅在页面完全重排计算完毕后触发，从物理级别断绝高度闪跳。
+2. **极客级无障碍辅助支持 (Native A11y)**：不仅仅是视觉，代码完全贯彻了 W3C 的 WAI-ARIA 隐形标识体系。手动对齐拦截键盘流：注入 `role="button"`、`role="navigation"` 与最核心的 `tabIndex={0}` 焦点链，并通过 `onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') ... }}` 手写键盘回车事件，赋予纯 `<div>` 原生按钮的完整尊严。
+3. **隔离式复现 (Memoization Rendering)**：以 `useMemo` 缓存机制接管动态拼接的大段字符串（如 `linear-gradient` 的坐标更新掩码），切断 React 对深层字面量的滥用重绘链路。
 
 
 
