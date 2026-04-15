@@ -1,0 +1,298 @@
+skill.md
+---
+name: DeepSeek Style Timeline UI
+description: A set of strict CSS and React component guidelines for replicating the highly dense, micro-indexed, and smoothly expanding auto-hiding scrollbar side panel UI seen in DeepSeek's chat history timeline.
+---
+
+# DeepSeek Timeline UI Guide
+
+When instructed to create a "DeepSeek Timeline" or "DeepSeek style sidebar", study the `examples/Timeline.tsx` implementation carefully and adhere to the following strict layout and UX rules:
+
+## 1. Vertical Density
+- **Row Height:** Use extremely compact rows. Set `min-h-[26px]` and `my-px` (1px margin top/bottom) yielding a mathematically dense 28px total item footprint.
+- **Micro Typography:** Use `text-[12px]` to reduce the visual weight of the text labels, keeping them firmly in "indexer/auxiliary" territory.
+
+## 2. The Anchor Lines (Dashes)
+- **Geometry:** Horizontal anchor lines should be thin and slightly elongated (`w-[14px] h-[1.5px]`), forming a clean ragged-left border via `justify-end`.
+- **Spacing:** The text label ellipsis must hug the anchor line closely (`mr-2` or max 8px distance).
+
+## 3. Monochromatic Active States
+- **Accent Colors (The Dash):** It is highly recommended to use a sophisticated Signature Brand Color (like DeepSeek Blue or Claude Terracotta) for the active timeline node indicator (the minimal horizontal dash).
+- **Monochrome Block Backgrounds:** While the dash itself can be a vibrant brand color, keep the expanded hover/active container blocks (the background behind the dense text) strictly monochrome (e.g., `bg-white/10` or `bg-zinc-200`) to ensure the UI remains uncluttered.
+   > **⚠️ Critical Brand-Color Implementation Nuances:**
+   > - **Light & Dark Contextual Tuning:** Deploy raw brand colors (e.g., `bg-blue-600` or `bg-orange-600`) for light mode dashes, but artificially **brighten them** in dark mode (e.g., `bg-blue-400`) to guarantee razor-sharp legibility without muddy bleeding against dark canvases.
+   > - **Background Segregation:** Even with an active brand color dash, the underlying container block MUST remain an inert neutral gray (e.g., `bg-zinc-200/80` or `bg-white/10`), preemptively voiding any aggressive color clashes.
+   > - **Visual Hierarchy Protection:** Calibrate the horizontal dash's footprint (transparency and contrast) carefully. Its vibrant saturation must serve purely as a passive anchor, legally prohibited from stealing the focal gravity from the actual dense typography.
+- **Inactive Dashes:** Keep inactive dashes heavily muted (`bg-white/20` in dark mode) so they don't fight with the dense text.
+
+## 4. DOM-Level Scrollbar Auto-Hide (Critical UX)
+- Never rely on CSS pseudo-hovers to hide the scroll container width. DeepSeek natively removes the scrollbar when collapsed.
+- Toggle scroll overflow explicitly from the React component state:
+  ```tsx
+  className={isExpanded ? 'overflow-y-auto' : 'overflow-y-hidden'}
+  ```
+- This guarantees that native OS scrollbars (typically 16px wide) never overlap or clip menus during the tightly contracted state (e.g. 32px width).
+
+## 5. Overlay Scrollbar Styling
+- Explicitly inject an inline `<style>` tag into the React component overriding Webkit scrollbars. This is heavily preferred over Tailwind arbitrary pseudo-class extensions which may strip out native fallback resets in complex Chromium environments.
+- **Thumb Dimensions:** Force `width: 4px` and native rounded corners (`border-radius: 4px`).
+- **Nuke Buttons:** Add explicit `display: none` to `::-webkit-scrollbar-button` and `::-webkit-scrollbar-corner` to rigorously prevent Windows OS from injecting up/down polygon arrows.
+- **Track Default:** Ensure track is `background: transparent;` so the 4px pill floats natively like macOS overlays.
+
+## 6. Instant Scroll Navigation
+- DeepSeek prioritizes speed over sluggish cinematic scrolling when fetching extremely long histories.
+- Do not use `behavior: 'smooth'` for jumping between historical chat nodes. The navigation must be crisp and instantaneous (`behavior: 'instant'`). 
+
+   > ** Advanced A11y & CSS Tokenization (Hardening):**
+   > - **Forced-Colors Media Query:** For maximum robustness in WCAG AAA compliance, any brand-colored dashes MUST gracefully degrade to pure system-defined high-contrast colors when `@media (forced-colors: active)` is detected. This ensures visually impaired users utilizing OS-level high-contrast themes are not blocked by CSS-forced brand pastels.
+   > - **CSS Variable Standardization:** Avoid hardcoding literal hex values (e.g., `bg-[#D97757]`) directly in the DOM array map. Inject scoped CSS variables (e.g., `--brand-accent`) within the parent container's inline styles or global `:root`. This unlocks instant cross-theme scaling, empowering `className="bg-[var(--brand-accent)]"` to automatically adapt without brittle search-and-replace.
+
+
+
+
+examples：
+
+/**
+ * Renders a fixed-position timeline navigator for claude.ai messages.
+ * Expanding Sidebar Style with Custom React Portal Tooltips and Dynamic Scroll Gradients.
+ */
+
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useTimeline } from '../../hooks/useTimeline';
+
+export default function Timeline() {
+  const { nodes, activeIndex, scrollToNode } = useTimeline();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [hoveredNode, setHoveredNode] = useState<{ id: string; text: string; rect: DOMRect } | null>(null);
+  const [scrollState, setScrollState] = useState({ isTop: true, isBottom: true });
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const checkScroll = () => {
+    if (!containerRef.current) return;
+    const el = containerRef.current;
+    const isTop = el.scrollTop <= 5;
+    const isBottom = Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight - 5;
+    setScrollState(p => (p.isTop === isTop && p.isBottom === isBottom ? p : { isTop, isBottom }));
+  };
+
+  useEffect(() => {
+    if (isExpanded) {
+      checkScroll();
+      const frame = requestAnimationFrame(checkScroll);
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [isExpanded, nodes]);
+
+  /**
+   * Auto-scrolls the timeline container so the active node stays visible.
+   */
+  useLayoutEffect(() => {
+    if (activeIndex < 0) return;
+    
+    // Double frame buffer ensures DOM height layout reflow completed
+    requestAnimationFrame(() => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const nodeEls = container.querySelectorAll<HTMLElement>('[data-timeline-node]');
+      const activeEl = nodeEls[activeIndex];
+      if (!activeEl) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const nodeRect = activeEl.getBoundingClientRect();
+      const nodeCenter = nodeRect.top + nodeRect.height / 2;
+      const containerCenter = containerRect.top + containerRect.height / 2;
+
+      const tolerance = containerRect.height * 0.3;
+      if (Math.abs(nodeCenter - containerCenter) > tolerance) {
+        const targetScroll =
+          activeEl.offsetTop - container.clientHeight / 2 + activeEl.clientHeight / 2;
+        container.scrollTo({ top: Math.max(0, targetScroll), behavior: 'instant' });
+      }
+      
+      setTimeout(checkScroll, 100);
+    });
+  }, [activeIndex]);
+
+  const handleScroll = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    if (hoveredNode) setHoveredNode(null);
+    checkScroll();
+  };
+
+  const maskStyle = useMemo(() => ({
+    maskImage: `linear-gradient(to bottom, ${
+      scrollState.isTop ? 'black 0px' : 'transparent 0px'
+    }, black 40px, black calc(100% - 40px), ${
+      scrollState.isBottom ? 'black 100%' : 'transparent 100%'
+    })`,
+    WebkitMaskImage: `linear-gradient(to bottom, ${
+      scrollState.isTop ? 'black 0px' : 'transparent 0px'
+    }, black 40px, black calc(100% - 40px), ${
+      scrollState.isBottom ? 'black 100%' : 'transparent 100%'
+    })`
+  }), [scrollState.isTop, scrollState.isBottom]);
+
+  if (nodes.length === 0) return null;
+
+  return (
+    <>
+      <style>{`
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(161, 161, 170, 0.4) transparent;
+        }
+        .dark .custom-scrollbar {
+          scrollbar-color: rgba(82, 82, 91, 0.6) transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(161, 161, 170, 0.4);
+          border-radius: 4px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(82, 82, 91, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(161, 161, 170, 0.8);
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(113, 113, 122, 0.8);
+        }
+        .custom-scrollbar::-webkit-scrollbar-button,
+        .custom-scrollbar::-webkit-scrollbar-corner {
+          display: none;
+          height: 0;
+          width: 0;
+        }
+      `}</style>
+      <div 
+        role="navigation" 
+        aria-label="Claude Context Timeline"
+        className="fixed right-3 top-[10vh] bottom-[10vh] z-50 flex flex-col justify-center pointer-events-none min-h-0"
+      >
+        <div
+          onMouseEnter={() => setIsExpanded(true)}
+          onMouseLeave={() => {
+            setIsExpanded(false);
+            if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+            setHoveredNode(null);
+          }}
+          className={`pointer-events-auto flex flex-col rounded-xl transition-all duration-300 min-h-0 border ${
+            isExpanded
+              ? 'bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-md !border-[#e5e0d8] dark:!border-[#18181b] shadow-[0_8px_32px_rgba(0,0,0,0.12)]'
+              : 'bg-transparent !border-transparent shadow-none'
+          }`}
+        >
+          <div
+            ref={containerRef}
+            role="list"
+            onScroll={handleScroll}
+            className={`custom-scrollbar flex flex-col py-4 overflow-x-hidden max-h-[320px] min-h-0 w-full ${
+              isExpanded ? 'overflow-y-auto' : 'overflow-y-hidden'
+            }`}
+            style={maskStyle}
+          >
+            {nodes.map((n, i) => {
+              const isActive = i === activeIndex;
+              return (
+                <div
+                  key={n.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-current={isActive ? 'true' : undefined}
+                    aria-label={n.text || 'Timeline node'}
+                    data-timeline-node
+                    title=""
+                    className={`flex items-center justify-end min-h-[26px] px-3 mx-2 my-px cursor-pointer transition-colors duration-200 shrink-0 rounded-md ${
+                    isExpanded ? (isActive ? 'bg-zinc-200/80 dark:bg-white/10' : 'hover:bg-zinc-200/50 dark:hover:bg-white/5') : ''
+                  }`}
+                  onClick={() => scrollToNode(i)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      scrollToNode(i);
+                    }
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isExpanded) {
+                      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const nId = n.id;
+                      const nText = n.text;
+                      hoverTimeoutRef.current = setTimeout(() => {
+                        setHoveredNode({ id: nId, text: nText, rect });
+                      }, 600);
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                    setHoveredNode((prev) => (prev?.id === n.id ? null : prev));
+                  }}
+                >
+                  <div
+                    title=""
+                    className={`overflow-hidden transition-all duration-300 flex items-center justify-end select-none ${
+                      isExpanded ? 'w-[13.5rem] opacity-100 mr-2' : 'w-0 opacity-0 mr-0'
+                    }`}
+                  >
+                    <span
+                      title=""
+                      className={`block truncate text-[12px] max-w-full pointer-events-none ${
+                        isActive ? '!text-zinc-900 dark:!text-zinc-200 font-medium' : '!text-[#374151] dark:!text-zinc-400'
+                      }`}
+                    >
+                      {n.text || '...'}
+                    </span>
+                  </div>
+                  <div
+                    className={`w-[14px] shrink-0 h-[1.5px] rounded-full transition-colors ${
+                      isActive ? '!bg-zinc-900 dark:!bg-zinc-200' : '!bg-black/20 dark:!bg-white/20'
+                    }`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {hoveredNode && isExpanded &&
+        createPortal(
+          <div
+            className="fixed z-[99999] pointer-events-none px-3.5 py-2.5 text-[13px] !bg-white dark:!bg-zinc-800 !text-[#374151] dark:!text-zinc-200 rounded-[8px] border border-black/10 dark:border-white/5 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
+            style={{
+              top: hoveredNode.rect.top + hoveredNode.rect.height / 2,
+              left: hoveredNode.rect.left - 12,
+              transform: 'translate(-100%, -50%)',
+              width: 'max-content',
+              maxWidth: '22rem',
+              lineHeight: '1.5',
+            }}
+          >
+            <div className="absolute left-full top-1/2 -translate-y-1/2 h-0 w-0 border-y-[6px] border-y-transparent border-l-[6px] border-l-black/10 dark:border-l-white/5" />
+            <div className="absolute left-[calc(100%-1px)] top-1/2 -translate-y-1/2 h-0 w-0 border-y-[5px] border-y-transparent border-l-[5px] !border-l-white dark:!border-l-zinc-800" />
+            <div
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 8,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                whiteSpace: 'normal',
+              }}
+            >
+              {hoveredNode.text}
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
+  );
+}
