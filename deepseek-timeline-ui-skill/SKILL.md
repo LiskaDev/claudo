@@ -41,8 +41,42 @@ When instructed to create a "DeepSeek Timeline" or "DeepSeek style sidebar", stu
 ## 6. Instant Scroll Navigation
 - DeepSeek prioritizes speed over sluggish cinematic scrolling when fetching extremely long histories.
 - Do not use `behavior: 'smooth'` for jumping between historical chat nodes. The navigation must be crisp and instantaneous (`behavior: 'instant'`).
+- See **Section 7** for the mandatory scroll offset compensation that must be paired with this rule.
 
-## 7. Advanced Architecture (High-Level Feature Hardening)
+## 7. Dynamic Scroll Offset Compensation (Critical for Universal Use)
+- **Never** use `scrollIntoView({ block: 'start' })` or hardcoded pixel offsets. These break whenever the consuming page has a fixed/sticky header of unknown height — a near-universal situation in real apps.
+- **Mandatory pattern:** At navigation time, dynamically detect all top-anchored fixed or sticky elements, compute the maximum bottom edge they occupy, then manually drive the scroll with that offset subtracted.
+- **Known limitations:** This approach does not detect headers that use `transform`-based sticking, elements inside Shadow DOM, or dynamically hiding headers (e.g. hide-on-scroll). For standard chat UIs (claude.ai, DeepSeek) these cases do not arise.
+- **Reference implementation:**
+  ```javascript
+  function getTopFixedOffset() {
+    let maxBottom = 0;
+    for (const el of document.querySelectorAll('*')) {
+      const s = getComputedStyle(el);
+      if (s.position === 'fixed' || s.position === 'sticky') {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < 10 && rect.height > 20) // top-anchored and substantial
+          maxBottom = Math.max(maxBottom, rect.bottom);
+      }
+    }
+    return maxBottom + 16; // 16px breathing gap
+    // Optional: memoize this value and recompute only on ResizeObserver events
+    // if performance on very large DOMs becomes a concern.
+  }
+
+  // Case A — window-level scroll (full-page chat interfaces):
+  const offset = getTopFixedOffset();
+  const targetY = targetEl.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top: Math.max(0, targetY), behavior: 'instant' });
+
+  // Case B — scrollable container (messages inside an overflow-y-auto div):
+  const relativeTop = targetEl.getBoundingClientRect().top
+                    - scrollContainer.getBoundingClientRect().top;
+  const targetScrollTop = scrollContainer.scrollTop + relativeTop - getTopFixedOffset();
+  scrollContainer.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'instant' });
+  ```
+
+## 8. Advanced Architecture (High-Level Feature Hardening)
 Beyond the core visual design, this Skill enforces the most rigorous frontend architectural patterns:
 1. **Render Control (Event Loop & Layout Reflow):** Abandon naive `useEffect`. Use `useLayoutEffect` combined with a `requestAnimationFrame` double-buffer frame to guarantee scroll animations only fire after the browser has fully completed its layout reflow pass — eliminating height-jump flicker at the physics level.
 2. **Native Accessibility (A11y):** Beyond visuals, the code fully implements the W3C WAI-ARIA invisible labeling system. Manually wire the keyboard focus chain by injecting `role="button"`, `role="navigation"`, and the critical `tabIndex={0}` attributes. Hand-write `onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') ... }}` to grant pure `<div>` elements the full dignity of native button behavior.
