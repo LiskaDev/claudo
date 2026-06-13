@@ -9,6 +9,7 @@ import type { Prompt } from '@src/types/prompt';
 export const CHAT_WIDTH_STORAGE_KEY = 'chatWidth';
 export const FLOAT_BALL_POSITION_STORAGE_KEY = 'floatBallPosition';
 export const PROMPT_LIBRARY_STORAGE_KEY = 'promptLibrary';
+export const INPUT_COUNTER_POSITION_STORAGE_KEY = 'inputCounterPosition';
 
 const parseChatWidth = (value: unknown): number | undefined => {
   if (typeof value !== 'number' || Number.isNaN(value) || !Number.isFinite(value)) return undefined;
@@ -121,13 +122,52 @@ export const writeStoredFloatBallPosition = async (position: FloatBallPosition):
   }
 };
 
+// ─── InputCounter position ──────────────────────────────────────────────────
+
+type InputCounterPosition = { left: number; top: number };
+
+const parseInputCounterPosition = (value: unknown): InputCounterPosition | undefined => {
+  if (!value || typeof value !== 'object') return undefined;
+  const v = value as Partial<InputCounterPosition>;
+  if (typeof v.left !== 'number' || Number.isNaN(v.left) || !Number.isFinite(v.left)) return undefined;
+  if (typeof v.top !== 'number' || Number.isNaN(v.top) || !Number.isFinite(v.top)) return undefined;
+  return { left: v.left, top: v.top };
+};
+
 /**
- * Reads the persisted prompt library list.
- * @returns Promise<Prompt[] | undefined>
- *
- * Modification Notes:
- *   - 2026-03-10 Added prompt library storage support.
+ * Reads the stored input counter gauge position.
+ * @returns Promise<{left:number; top:number} | undefined>
  */
+export const readStoredInputCounterPosition = async (): Promise<InputCounterPosition | undefined> => {
+  try {
+    if (!chrome?.storage?.local) return undefined;
+    const result = await new Promise<Record<string, unknown>>((resolve) => {
+      chrome.storage.local.get([INPUT_COUNTER_POSITION_STORAGE_KEY], (value) => resolve(value || {}));
+    });
+    return parseInputCounterPosition(result[INPUT_COUNTER_POSITION_STORAGE_KEY]);
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * Persists the input counter gauge position to local storage.
+ * @param position { left: number; top: number }
+ * @returns Promise<void>
+ */
+export const writeStoredInputCounterPosition = async (position: InputCounterPosition): Promise<void> => {
+  try {
+    if (!chrome?.storage?.local) return;
+    await new Promise<void>((resolve) => {
+      chrome.storage.local.set({ [INPUT_COUNTER_POSITION_STORAGE_KEY]: position }, () => resolve());
+    });
+  } catch {
+    return;
+  }
+};
+
+// ─── Prompt library ─────────────────────────────────────────────────────────
+
 export const readStoredPromptLibrary = async (): Promise<Prompt[] | undefined> => {
   try {
     if (!chrome?.storage?.local) return undefined;

@@ -1,7 +1,9 @@
 /**
  * useInputCounter.ts
  * Tracks Claude chat input content and exposes character/token counts.
- * Creates a portal container inside the fieldset for stable positioning.
+ * Creates a portal container on document.body with position:fixed so the
+ * gauge ring escapes the input fieldset's layout flow and stays put across
+ * DOM changes (e.g. "model unavailable" toasts).
  * Re-attaches on SPA navigation.
  *
  * Two sources of content:
@@ -14,6 +16,7 @@
  *     stop matching, so their chars/tokens are no longer included.
  *
  * Created: 2026-04-04
+ * Updated: 2026-06-13 — portal container moved to document.body, position:fixed.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -30,10 +33,17 @@ import {
   usePasteDataMap,
 } from './usePasteTracker';
 
+/** Must stay in sync with RING_SIZE in InputCounter/index.tsx. */
+const GAUGE_SIZE_PX = 18;
+/** Right-offset from the fieldset edge (same as original absolute positioning). */
+const DEFAULT_RIGHT_OFFSET = 20;
+/** Top-offset from the fieldset edge. */
+const DEFAULT_TOP_OFFSET = 8;
+
 export interface InputCounterState {
   chars: number;
   tokens: number;
-  /** Container element appended inside the fieldset. Use with createPortal. */
+  /** Container element on document.body (position:fixed). Use with createPortal. */
   portalTarget: HTMLElement | null;
 }
 
@@ -147,7 +157,7 @@ export const useInputCounter = (): InputCounterState => {
       }
       moRef.current?.disconnect(); moRef.current = null;
       roRef.current?.disconnect(); roRef.current = null;
-      // Remove portal container from Claude's DOM
+      // Remove portal container from document.body
       if (portalRef.current) {
         portalRef.current.remove();
         portalRef.current = null;
@@ -171,18 +181,18 @@ export const useInputCounter = (): InputCounterState => {
 
       inputElRef.current = el;
 
-      // ── Create portal container inside the fieldset ──────────────────────
+      // ── Create portal container on document.body with position:fixed ──
       const fieldset = el.closest(CHAT_INPUT_FIELDSET_SELECTOR);
       if (fieldset instanceof HTMLElement) {
-        // Ensure fieldset is a containing block for absolute positioning
-        const computed = window.getComputedStyle(fieldset);
-        if (computed.position === 'static') {
-          fieldset.style.position = 'relative';
-        }
+        const fieldsetRect = fieldset.getBoundingClientRect();
+        const defaultLeft = Math.max(0, fieldsetRect.right - DEFAULT_RIGHT_OFFSET - GAUGE_SIZE_PX);
+        const defaultTop = Math.max(0, fieldsetRect.top + DEFAULT_TOP_OFFSET);
+
         const container = document.createElement('div');
         container.setAttribute('data-claudo-gauge', 'true');
-        container.style.cssText = 'position:absolute;top:8px;right:20px;z-index:9999;pointer-events:auto;';
-        fieldset.appendChild(container);
+        container.style.cssText =
+          `position:fixed;left:${defaultLeft}px;top:${defaultTop}px;z-index:9999;pointer-events:auto;`;
+        document.body.appendChild(container);
         portalRef.current = container;
       }
 
