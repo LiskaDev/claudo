@@ -6,9 +6,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeftRight, Settings, X, Download, BookText, Globe, Search, Keyboard, Activity } from 'lucide-react';
+import { ArrowLeftRight, Settings, X, Download, BookText, Globe, Search, Keyboard, Activity, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { readStoredFloatBallPosition, writeStoredFloatBallPosition } from '@src/services/storage';
+import { readStoredFloatBallPosition, writeStoredFloatBallPosition, INPUT_COUNTER_POSITION_STORAGE_KEY } from '@src/services/storage';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useDomHealth } from '../../hooks/useDomHealth';
 import { exportStore } from '../ExportHub/store';
@@ -108,29 +108,46 @@ const PanelMenu = ({ side, onClose, onSelectPanel, ballY }: PanelMenuProps) => {
 
         {/* ── InputCounter toggle row ── */}
         <div className="mt-1 border-t border-zinc-200 dark:border-zinc-700/50 pt-1">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={inputCounterOn}
-            onClick={toggleInputCounter}
-            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          >
+          <div className="flex w-full items-center rounded-lg px-2.5 py-1.5 text-left text-[13px] font-medium">
             <Activity className="h-4 w-4 flex-shrink-0 text-[#6b7280] dark:text-zinc-400" aria-hidden="true" />
-            <span className="flex-1 truncate text-zinc-700 dark:text-zinc-300">
+            <span className="flex-1 truncate text-zinc-700 dark:text-zinc-300 ml-2.5">
               {t('shortcutsPanel.inputCounter', '输入量指示圈')}
             </span>
-            <span
-              className={`relative inline-flex items-center h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ${
-                inputCounterOn ? 'bg-[#1D9E75]' : '!bg-zinc-300 dark:!bg-zinc-600'
-              }`}
+            {/* ── Reset gauge position ── */}
+            <button
+              type="button"
+              className="rounded p-0.5 text-[#6b7280] dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex-shrink-0"
+              aria-label="复位圆环位置"
+              title={t('shortcutsPanel.inputCounter', '输入量指示圈') + ' 复位位置'}
+              onClick={() => {
+                chrome?.storage?.local?.remove(INPUT_COUNTER_POSITION_STORAGE_KEY);
+                window.dispatchEvent(new CustomEvent('claudo:reset-gauge-position'));
+              }}
+            >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+            {/* ── Toggle switch ── */}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={inputCounterOn}
+              aria-label={t('shortcutsPanel.inputCounter', '输入量指示圈')}
+              onClick={toggleInputCounter}
+              className="flex-shrink-0 ml-1.5"
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                  inputCounterOn ? 'translate-x-4' : 'translate-x-0'
+                className={`relative inline-flex items-center h-5 w-9 rounded-full border-2 border-transparent transition-colors duration-200 ${
+                  inputCounterOn ? 'bg-[#1D9E75]' : '!bg-zinc-300 dark:!bg-zinc-600'
                 }`}
-              />
-            </span>
-          </button>
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                    inputCounterOn ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className={`absolute -translate-y-1/2 ${arrowWrapperClass}`} style={{ top: `${arrowTop}%` }}>

@@ -24,13 +24,17 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { useInputCounter } from '../../hooks/useInputCounter';
+import { useInputCounter, GAUGE_SIZE_PX, DEFAULT_RIGHT_OFFSET, DEFAULT_TOP_OFFSET } from '../../hooks/useInputCounter';
 import { useContextCounter, MAX_CTX } from '../../hooks/useContextCounter';
 import { useInputCounterEnabled } from '../../hooks/useInputCounterEnabled';
 import {
   readStoredInputCounterPosition,
   writeStoredInputCounterPosition,
 } from '@src/services/storage';
+import {
+  CHAT_INPUT_SELECTOR,
+  CHAT_INPUT_FIELDSET_SELECTOR,
+} from '@src/constants/selectors';
 
 // ─── Ring geometry ────────────────────────────────────────────────────────────
 const RING_SIZE = 18;
@@ -143,6 +147,31 @@ export default function InputCounter() {
       }
     })();
     return () => { cancelled = true; };
+  }, [portalTarget]);
+
+  // ── Listen for external reset-position events (e.g. from FloatBall panel) ──
+  useEffect(() => {
+    const handleReset = () => {
+      const container = portalTarget;
+      if (!container) return;
+
+      // Recalculate default position from the fieldset's current bounding rect
+      const inputEl = document.querySelector(CHAT_INPUT_SELECTOR);
+      if (!(inputEl instanceof HTMLElement)) return;
+      const fieldset = inputEl.closest(CHAT_INPUT_FIELDSET_SELECTOR);
+      if (!(fieldset instanceof HTMLElement)) return;
+
+      const fieldsetRect = fieldset.getBoundingClientRect();
+      const defaultLeft = Math.max(0, fieldsetRect.right - DEFAULT_RIGHT_OFFSET - GAUGE_SIZE_PX);
+      const defaultTop = Math.max(0, fieldsetRect.top + DEFAULT_TOP_OFFSET);
+
+      container.style.left = `${defaultLeft}px`;
+      container.style.top = `${defaultTop}px`;
+      positionRef.current = { left: defaultLeft, top: defaultTop };
+    };
+
+    window.addEventListener('claudo:reset-gauge-position', handleReset);
+    return () => window.removeEventListener('claudo:reset-gauge-position', handleReset);
   }, [portalTarget]);
 
   // ── Cleanup long-press timer on unmount ───────────────────────────────────

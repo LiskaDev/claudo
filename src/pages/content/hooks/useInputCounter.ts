@@ -34,11 +34,11 @@ import {
 } from './usePasteTracker';
 
 /** Must stay in sync with RING_SIZE in InputCounter/index.tsx. */
-const GAUGE_SIZE_PX = 18;
+export const GAUGE_SIZE_PX = 18;
 /** Right-offset from the fieldset edge (same as original absolute positioning). */
-const DEFAULT_RIGHT_OFFSET = 20;
+export const DEFAULT_RIGHT_OFFSET = 20;
 /** Top-offset from the fieldset edge. */
-const DEFAULT_TOP_OFFSET = 8;
+export const DEFAULT_TOP_OFFSET = 8;
 
 export interface InputCounterState {
   chars: number;
