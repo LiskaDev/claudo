@@ -6,6 +6,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTimeline } from '../../hooks/useTimeline';
+import { AUTOSCROLL_CONTAINER_SELECTOR } from '@src/constants/selectors';
 
 export default function Timeline() {
   const { nodes, activeIndex, scrollToNode } = useTimeline();
@@ -37,19 +38,36 @@ export default function Timeline() {
   const [dragY, setDragY] = useState(0);
   const dragStartRef = useRef<{ startY: number; initialY: number; pointerId: number } | null>(null);
 
-  // --- Keeps the panel clear of the page's own native scrollbar. Overlay
-  // scrollbars (macOS) report ~0px, so this falls back to the old fixed gap;
-  // classic scrollbars (Windows/Linux, ~15-17px) push the panel further in
-  // so the two don't visually collide. ---
+  // --- Keeps the panel clear of the native scrollbar. Claude's outer
+  // <html>/<body> don't scroll at all — the actual scrollable element (and
+  // the one that paints the native scrollbar) is the chat's own
+  // overflow-y-auto container, so that's what has to be measured, not
+  // document.documentElement (which reports 0 here and silently no-ops).
+  // Overlay scrollbars (macOS) report ~0px width, so this falls back to the
+  // old fixed gap on that platform. ---
   const [rightGap, setRightGap] = useState(12);
   useEffect(() => {
     const measure = () => {
-      const nativeScrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-      setRightGap(Math.max(12, nativeScrollbarWidth + 8));
+      const container = document.querySelector(AUTOSCROLL_CONTAINER_SELECTOR);
+      if (!(container instanceof HTMLElement)) {
+        setRightGap(12);
+        return;
+      }
+      const rect = container.getBoundingClientRect();
+      const scrollbarWidth = container.offsetWidth - container.clientWidth;
+      const gapToViewportEdge = Math.max(0, window.innerWidth - rect.right);
+      setRightGap(Math.max(12, gapToViewportEdge + scrollbarWidth + 8));
     };
     measure();
     window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
+    // The container can appear after mount, resize (preview panel opening),
+    // or its scrollbar can appear/disappear as content grows — cheap enough
+    // to just re-check on an interval rather than wiring up every trigger.
+    const interval = window.setInterval(measure, 1000);
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
