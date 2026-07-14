@@ -3,13 +3,47 @@
  * Expanding Sidebar Style with Custom React Portal Tooltips and Dynamic Scroll Gradients.
  */
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTimeline } from '../../hooks/useTimeline';
 import { AUTOSCROLL_CONTAINER_SELECTOR } from '@src/constants/selectors';
 
+/** Fixed count of turns shown at once, centered on the active one. */
+const WINDOW_SIZE = 9;
+const WINDOW_HALF = 4;
+
+/**
+ * Slices `nodes` down to a fixed-size window centered on `activeIndex`.
+ * Near either end of the conversation, where a full half-window doesn't
+ * exist on one side, the window shifts toward the other side instead of
+ * shrinking — so it always shows WINDOW_SIZE turns as long as that many exist.
+ */
+const computeVisibleWindow = <T,>(nodes: T[], activeIndex: number): T[] => {
+  if (nodes.length <= WINDOW_SIZE) return nodes;
+
+  const active = Math.max(0, activeIndex);
+  let start = active - WINDOW_HALF;
+  let end = active + WINDOW_HALF;
+
+  if (start < 0) {
+    end += -start;
+    start = 0;
+  }
+  if (end > nodes.length - 1) {
+    start -= end - (nodes.length - 1);
+    end = nodes.length - 1;
+  }
+  start = Math.max(0, start);
+
+  return nodes.slice(start, end + 1);
+};
+
 export default function Timeline() {
   const { nodes, activeIndex, scrollToNode } = useTimeline();
+  const visibleNodes = useMemo(
+    () => computeVisibleWindow(nodes, activeIndex),
+    [nodes, activeIndex],
+  );
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [hoveredNode, setHoveredNode] = useState<{ id: string; text: string; rect: DOMRect } | null>(null);
@@ -119,7 +153,7 @@ export default function Timeline() {
       const frame = requestAnimationFrame(checkScroll);
       return () => cancelAnimationFrame(frame);
     }
-  }, [isExpanded, nodes]);
+  }, [isExpanded, visibleNodes]);
 
   /**
    * Auto-scrolls the timeline container so the active node stays visible.
@@ -134,8 +168,10 @@ export default function Timeline() {
       const container = containerRef.current;
       if (!container) return;
 
-      const nodeEls = container.querySelectorAll<HTMLElement>('[data-timeline-node]');
-      const activeEl = nodeEls[activeIndex];
+      // Look up by aria-current rather than indexing into the rendered node
+      // list — with a windowed subset rendered, DOM position no longer lines
+      // up with the global activeIndex.
+      const activeEl = container.querySelector<HTMLElement>('[data-timeline-node][aria-current="true"]');
       if (!activeEl) return;
 
       const containerRect = container.getBoundingClientRect();
@@ -238,8 +274,8 @@ export default function Timeline() {
               isExpanded ? 'overflow-y-auto' : 'overflow-y-hidden'
             }`}
           >
-            {nodes.map((n, i) => {
-              const isActive = i === activeIndex;
+            {visibleNodes.map((n) => {
+              const isActive = n.index === activeIndex;
               return (
                 <div
                   key={n.id}
@@ -252,11 +288,11 @@ export default function Timeline() {
                     className={`flex items-center justify-end min-h-[26px] px-3 mx-2 my-px cursor-pointer transition-colors duration-200 shrink-0 rounded-md ${
                     isExpanded ? (isActive ? 'bg-zinc-200/80 dark:bg-white/10' : 'hover:bg-zinc-200/50 dark:hover:bg-white/5') : ''
                   }`}
-                  onClick={() => scrollToNode(i)}
+                  onClick={() => scrollToNode(n.index)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      scrollToNode(i);
+                      scrollToNode(n.index);
                     }
                   }}
                   onMouseEnter={(e) => {
