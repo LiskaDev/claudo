@@ -123,20 +123,27 @@ export const writeStoredFloatBallPosition = async (position: FloatBallPosition):
 };
 
 // ─── InputCounter position ──────────────────────────────────────────────────
+// Stored as an offset from the chat input fieldset's top-right corner (not an
+// absolute page coordinate), so the gauge keeps tracking the fieldset across
+// layout changes instead of freezing at the pixel it was dragged to.
 
-type InputCounterPosition = { left: number; top: number };
+type InputCounterPosition = { offsetRight: number; offsetTop: number };
 
 const parseInputCounterPosition = (value: unknown): InputCounterPosition | undefined => {
   if (!value || typeof value !== 'object') return undefined;
   const v = value as Partial<InputCounterPosition>;
-  if (typeof v.left !== 'number' || Number.isNaN(v.left) || !Number.isFinite(v.left)) return undefined;
-  if (typeof v.top !== 'number' || Number.isNaN(v.top) || !Number.isFinite(v.top)) return undefined;
-  return { left: v.left, top: v.top };
+  // Pre-2026-07 versions stored {left, top} absolute coordinates, which have
+  // no valid interpretation as a fieldset-relative offset — fall back to the
+  // default offset instead of erroring or misplacing the gauge.
+  if (typeof v.offsetRight !== 'number' || Number.isNaN(v.offsetRight) || !Number.isFinite(v.offsetRight)) return undefined;
+  if (typeof v.offsetTop !== 'number' || Number.isNaN(v.offsetTop) || !Number.isFinite(v.offsetTop)) return undefined;
+  return { offsetRight: v.offsetRight, offsetTop: v.offsetTop };
 };
 
 /**
- * Reads the stored input counter gauge position.
- * @returns Promise<{left:number; top:number} | undefined>
+ * Reads the stored input counter gauge offset (relative to the fieldset's
+ * top-right corner).
+ * @returns Promise<{offsetRight:number; offsetTop:number} | undefined>
  */
 export const readStoredInputCounterPosition = async (): Promise<InputCounterPosition | undefined> => {
   try {
@@ -151,8 +158,9 @@ export const readStoredInputCounterPosition = async (): Promise<InputCounterPosi
 };
 
 /**
- * Persists the input counter gauge position to local storage.
- * @param position { left: number; top: number }
+ * Persists the input counter gauge offset (relative to the fieldset's
+ * top-right corner) to local storage.
+ * @param position { offsetRight: number; offsetTop: number }
  * @returns Promise<void>
  */
 export const writeStoredInputCounterPosition = async (position: InputCounterPosition): Promise<void> => {

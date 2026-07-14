@@ -24,17 +24,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { useInputCounter, GAUGE_SIZE_PX, DEFAULT_RIGHT_OFFSET, DEFAULT_TOP_OFFSET } from '../../hooks/useInputCounter';
+import { useInputCounter } from '../../hooks/useInputCounter';
 import { useContextCounter, MAX_CTX } from '../../hooks/useContextCounter';
 import { useInputCounterEnabled } from '../../hooks/useInputCounterEnabled';
 import {
   readStoredInputCounterPosition,
   writeStoredInputCounterPosition,
 } from '@src/services/storage';
-import {
-  CHAT_INPUT_SELECTOR,
-  CHAT_INPUT_FIELDSET_SELECTOR,
-} from '@src/constants/selectors';
 
 // ─── Ring geometry ────────────────────────────────────────────────────────────
 const RING_SIZE = 18;
@@ -102,7 +98,7 @@ function tooltipStyle(dark: boolean): React.CSSProperties {
 export default function InputCounter() {
   const { t } = useTranslation();
   const [enabled] = useInputCounterEnabled();
-  const { chars, tokens: inputTokens, portalTarget } = useInputCounter();
+  const { chars, tokens: inputTokens, portalTarget, setOffset, resetOffset, getFieldsetRect } = useInputCounter();
   const { level: ctxLevel, estimatedTokens: ctxTokens } = useContextCounter();
 
   // ── Hover / tooltip state ─────────────────────────────────────────────────
@@ -123,56 +119,26 @@ export default function InputCounter() {
   /** Latest clamped position, written to storage on drag-end. */
   const positionRef = useRef<{ left: number; top: number } | null>(null);
 
-  // ── Restore saved position (or keep default) when portal container appears ─
+  // ── Restore saved offset (or keep hook's default) when portal container appears ─
   useEffect(() => {
     if (!portalTarget) return;
 
     let cancelled = false;
     void (async () => {
       const saved = await readStoredInputCounterPosition();
-      if (cancelled || !portalTarget) return;
-      if (saved) {
-        // Clamp saved position into the current viewport
-        const clampedLeft = Math.max(0, Math.min(saved.left, window.innerWidth - RING_SIZE));
-        const clampedTop = Math.max(0, Math.min(saved.top, window.innerHeight - RING_SIZE));
-        portalTarget.style.left = `${clampedLeft}px`;
-        portalTarget.style.top = `${clampedTop}px`;
-        positionRef.current = { left: clampedLeft, top: clampedTop };
-      } else {
-        // Keep hook's default placement; record it as the current position
-        positionRef.current = {
-          left: parseFloat(portalTarget.style.left) || 0,
-          top: parseFloat(portalTarget.style.top) || 0,
-        };
-      }
+      if (cancelled) return;
+      // No saved offset (first run, or pre-migration data) → keep the
+      // default top-right-corner placement the hook already applied.
+      if (saved) setOffset(saved);
     })();
     return () => { cancelled = true; };
-  }, [portalTarget]);
+  }, [portalTarget, setOffset]);
 
   // ── Listen for external reset-position events (e.g. from FloatBall panel) ──
   useEffect(() => {
-    const handleReset = () => {
-      const container = portalTarget;
-      if (!container) return;
-
-      // Recalculate default position from the fieldset's current bounding rect
-      const inputEl = document.querySelector(CHAT_INPUT_SELECTOR);
-      if (!(inputEl instanceof HTMLElement)) return;
-      const fieldset = inputEl.closest(CHAT_INPUT_FIELDSET_SELECTOR);
-      if (!(fieldset instanceof HTMLElement)) return;
-
-      const fieldsetRect = fieldset.getBoundingClientRect();
-      const defaultLeft = Math.max(0, fieldsetRect.right - DEFAULT_RIGHT_OFFSET - GAUGE_SIZE_PX);
-      const defaultTop = Math.max(0, fieldsetRect.top + DEFAULT_TOP_OFFSET);
-
-      container.style.left = `${defaultLeft}px`;
-      container.style.top = `${defaultTop}px`;
-      positionRef.current = { left: defaultLeft, top: defaultTop };
-    };
-
-    window.addEventListener('claudo:reset-gauge-position', handleReset);
-    return () => window.removeEventListener('claudo:reset-gauge-position', handleReset);
-  }, [portalTarget]);
+    window.addEventListener('claudo:reset-gauge-position', resetOffset);
+    return () => window.removeEventListener('claudo:reset-gauge-position', resetOffset);
+  }, [resetOffset]);
 
   // ── Cleanup long-press timer on unmount ───────────────────────────────────
   useEffect(() => {
@@ -274,9 +240,19 @@ export default function InputCounter() {
       setIsDragging(false);
       setDragCursor('grab');
 
-      // Persist final position
+      // Convert the dropped absolute position into an offset from the
+      // fieldset's top-right corner, so it keeps tracking the fieldset
+      // (via the hook's ResizeObserver/poll) instead of freezing in place.
       if (positionRef.current) {
-        void writeStoredInputCounterPosition(positionRef.current);
+        const fieldsetRect = getFieldsetRect();
+        if (fieldsetRect) {
+          const offset = {
+            offsetRight: fieldsetRect.right - positionRef.current.left,
+            offsetTop: positionRef.current.top - fieldsetRect.top,
+          };
+          setOffset(offset);
+          void writeStoredInputCounterPosition(offset);
+        }
       }
     };
 
@@ -288,7 +264,7 @@ export default function InputCounter() {
       document.removeEventListener('pointerup', end, true);
       document.removeEventListener('pointercancel', end, true);
     };
-  }, [isDragging, portalTarget]);
+  }, [isDragging, portalTarget, getFieldsetRect, setOffset]);
 
   // ── Guard: toggle off or portal not ready ─────────────────────────────────
   if (!enabled || !portalTarget) return null;

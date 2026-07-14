@@ -19,7 +19,7 @@
  * Updated: 2026-06-13 — portal container moved to document.body, position:fixed.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   CHAT_INPUT_SELECTOR,
   CHAT_INPUT_FIELDSET_SELECTOR,
@@ -40,14 +40,38 @@ export const DEFAULT_RIGHT_OFFSET = 20;
 /** Top-offset from the fieldset edge. */
 export const DEFAULT_TOP_OFFSET = 8;
 
+/** Position expressed relative to the fieldset's top-right corner, not an absolute page coordinate. */
+export interface GaugeOffset {
+  offsetRight: number;
+  offsetTop: number;
+}
+
+const DEFAULT_OFFSET: GaugeOffset = {
+  offsetRight: DEFAULT_RIGHT_OFFSET + GAUGE_SIZE_PX,
+  offsetTop: DEFAULT_TOP_OFFSET,
+};
+
+/** Minimum fieldset position delta (px) before the poll fallback re-applies the gauge position. */
+const POSITION_DRIFT_THRESHOLD_PX = 1;
+
 export interface InputCounterState {
   chars: number;
   tokens: number;
   /** Container element on document.body (position:fixed). Use with createPortal. */
   portalTarget: HTMLElement | null;
+  /** Sets the gauge's offset from the fieldset's top-right corner and repositions it immediately. */
+  setOffset: (offset: GaugeOffset) => void;
+  /** Restores the default top-right-corner offset and repositions the gauge immediately. */
+  resetOffset: () => void;
+  /** Current bounding rect of the chat input fieldset, or null if not attached. */
+  getFieldsetRect: () => DOMRect | null;
 }
 
-const EMPTY_STATE: InputCounterState = { chars: 0, tokens: 0, portalTarget: null };
+const EMPTY_STATE: Omit<InputCounterState, 'setOffset' | 'resetOffset' | 'getFieldsetRect'> = {
+  chars: 0,
+  tokens: 0,
+  portalTarget: null,
+};
 
 /**
  * Token estimator for mixed CJK + Latin text.
@@ -61,17 +85,72 @@ export const estimateTokens = (text: string): number => {
 };
 
 export const useInputCounter = (): InputCounterState => {
-  const [state, setState] = useState<InputCounterState>(EMPTY_STATE);
+  const [state, setState] = useState(EMPTY_STATE);
 
   const rafRef = useRef<number>(0);
   const inputElRef = useRef<HTMLElement | null>(null);
   const moRef = useRef<MutationObserver | null>(null);
   const roRef = useRef<ResizeObserver | null>(null);
+  const fieldsetRoRef = useRef<ResizeObserver | null>(null);
+  /** Last-seen fieldset top/left, used by the poll fallback to detect pure-position moves. */
+  const lastFieldsetRectRef = useRef<{ left: number; top: number } | null>(null);
+  /** Current gauge offset from the fieldset's top-right corner (default until restored/dragged). */
+  const offsetRef = useRef<GaugeOffset>(DEFAULT_OFFSET);
+  /** Latest applyPosition()/getFieldsetRect() closures, assigned inside the effect below so the
+   *  stable callbacks exposed to consumers always call the current attach/detach cycle's logic. */
+  const applyPositionRef = useRef<() => void>(() => {});
+  const getFieldsetRectRef = useRef<() => DOMRect | null>(() => null);
 
   const pasteDataMap = usePasteDataMap();
   const portalRef = useRef<HTMLElement | null>(null);
 
+  const setOffset = useCallback((offset: GaugeOffset) => {
+    offsetRef.current = offset;
+    applyPositionRef.current();
+  }, []);
+
+  const resetOffset = useCallback(() => {
+    offsetRef.current = DEFAULT_OFFSET;
+    applyPositionRef.current();
+  }, []);
+
+  const getFieldsetRect = useCallback((): DOMRect | null => getFieldsetRectRef.current(), []);
+
   useEffect(() => {
+    /** Resolves the fieldset element currently wrapping the attached input, if any. */
+    const getFieldsetEl = (): HTMLElement | null => {
+      const el = inputElRef.current;
+      if (!el) return null;
+      const fieldset = el.closest(CHAT_INPUT_FIELDSET_SELECTOR);
+      return fieldset instanceof HTMLElement ? fieldset : null;
+    };
+
+    /**
+     * Recomputes the gauge's fixed position from the fieldset's current bounding
+     * rect plus the active offset, clamps it into the viewport, and writes it
+     * directly to the portal container's style. Called on attach, whenever the
+     * fieldset resizes/moves, and whenever the offset itself changes (restore,
+     * drag-end, reset).
+     */
+    const applyPosition = () => {
+      const fieldset = getFieldsetEl();
+      const portal = portalRef.current;
+      if (!fieldset || !portal) return;
+
+      const rect = fieldset.getBoundingClientRect();
+      const { offsetRight, offsetTop } = offsetRef.current;
+      const rawLeft = rect.right - offsetRight;
+      const rawTop = rect.top + offsetTop;
+      const left = Math.max(0, Math.min(rawLeft, window.innerWidth - GAUGE_SIZE_PX));
+      const top = Math.max(0, Math.min(rawTop, window.innerHeight - GAUGE_SIZE_PX));
+
+      portal.style.left = `${left}px`;
+      portal.style.top = `${top}px`;
+      lastFieldsetRectRef.current = { left: rect.left, top: rect.top };
+    };
+    applyPositionRef.current = applyPosition;
+    getFieldsetRectRef.current = () => getFieldsetEl()?.getBoundingClientRect() ?? null;
+
     /**
      * Reads the current input element's text content and scans for PASTED cards.
      * Combines both sources into a single {chars, tokens} state update.
@@ -157,6 +236,8 @@ export const useInputCounter = (): InputCounterState => {
       }
       moRef.current?.disconnect(); moRef.current = null;
       roRef.current?.disconnect(); roRef.current = null;
+      fieldsetRoRef.current?.disconnect(); fieldsetRoRef.current = null;
+      lastFieldsetRectRef.current = null;
       // Remove portal container from document.body
       if (portalRef.current) {
         portalRef.current.remove();
@@ -182,18 +263,21 @@ export const useInputCounter = (): InputCounterState => {
       inputElRef.current = el;
 
       // ── Create portal container on document.body with position:fixed ──
+      // Position is computed by applyPosition() from the fieldset rect + the
+      // active offset (default, or the user's last dragged/restored offset).
       const fieldset = el.closest(CHAT_INPUT_FIELDSET_SELECTOR);
       if (fieldset instanceof HTMLElement) {
-        const fieldsetRect = fieldset.getBoundingClientRect();
-        const defaultLeft = Math.max(0, fieldsetRect.right - DEFAULT_RIGHT_OFFSET - GAUGE_SIZE_PX);
-        const defaultTop = Math.max(0, fieldsetRect.top + DEFAULT_TOP_OFFSET);
-
         const container = document.createElement('div');
         container.setAttribute('data-claudo-gauge', 'true');
-        container.style.cssText =
-          `position:fixed;left:${defaultLeft}px;top:${defaultTop}px;z-index:9999;pointer-events:auto;`;
+        container.style.cssText = `position:fixed;z-index:9999;pointer-events:auto;`;
         document.body.appendChild(container);
         portalRef.current = container;
+        applyPosition();
+
+        // Keep the gauge glued to the fieldset's top-right corner as it
+        // resizes (e.g. preview panel opening/closing/dragging).
+        fieldsetRoRef.current = new ResizeObserver(applyPosition);
+        fieldsetRoRef.current.observe(fieldset);
       }
 
       el.addEventListener('input', scheduleUpdate);
@@ -218,6 +302,20 @@ export const useInputCounter = (): InputCounterState => {
       const el = document.querySelector(CHAT_INPUT_SELECTOR);
       if (el instanceof HTMLElement) {
         attach(el);
+
+        // ResizeObserver only fires on width/height changes. A fieldset that
+        // keeps its size but moves (e.g. welcome-page centered input ↔
+        // bottom-docked input) needs this position-only diff check instead.
+        const fieldset = getFieldsetEl();
+        if (fieldset) {
+          const rect = fieldset.getBoundingClientRect();
+          const last = lastFieldsetRectRef.current;
+          const moved =
+            !last ||
+            Math.abs(rect.left - last.left) > POSITION_DRIFT_THRESHOLD_PX ||
+            Math.abs(rect.top - last.top) > POSITION_DRIFT_THRESHOLD_PX;
+          if (moved) applyPosition();
+        }
       } else if (inputElRef.current) {
         detach();
       }
@@ -233,5 +331,5 @@ export const useInputCounter = (): InputCounterState => {
     };
   }, []);
 
-  return state;
+  return { ...state, setOffset, resetOffset, getFieldsetRect };
 };
