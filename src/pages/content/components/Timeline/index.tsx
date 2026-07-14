@@ -3,7 +3,7 @@
  * Expanding Sidebar Style with Custom React Portal Tooltips and Dynamic Scroll Gradients.
  */
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTimeline } from '../../hooks/useTimeline';
 
@@ -14,6 +14,24 @@ export default function Timeline() {
   const [hoveredNode, setHoveredNode] = useState<{ id: string; text: string; rect: DOMRect } | null>(null);
   const [scrollState, setScrollState] = useState({ isTop: true, isBottom: true });
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // --- Suppresses the auto-scroll-to-active-node effect while the user is
+  // actively spinning the wheel over the timeline, so it doesn't fight/reset
+  // their manual scroll. ---
+  const userScrollingRef = useRef(false);
+  const userScrollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const markUserScrolling = () => {
+    userScrollingRef.current = true;
+    if (userScrollingTimeoutRef.current) clearTimeout(userScrollingTimeoutRef.current);
+    userScrollingTimeoutRef.current = setTimeout(() => {
+      userScrollingRef.current = false;
+    }, 600);
+  };
+  useEffect(() => {
+    return () => {
+      if (userScrollingTimeoutRef.current) clearTimeout(userScrollingTimeoutRef.current);
+    };
+  }, []);
 
   // --- Y-axis drag state ---
   const [dragY, setDragY] = useState(0);
@@ -75,9 +93,11 @@ export default function Timeline() {
    */
   useLayoutEffect(() => {
     if (activeIndex < 0) return;
-    
+    if (userScrollingRef.current) return;
+
     // Double frame buffer ensures DOM height layout reflow completed
     requestAnimationFrame(() => {
+      if (userScrollingRef.current) return;
       const container = containerRef.current;
       if (!container) return;
 
@@ -106,19 +126,6 @@ export default function Timeline() {
     if (hoveredNode) setHoveredNode(null);
     checkScroll();
   };
-
-  const maskStyle = useMemo(() => ({
-    maskImage: `linear-gradient(to bottom, ${
-      scrollState.isTop ? 'black 0px' : 'transparent 0px'
-    }, black 40px, black calc(100% - 40px), ${
-      scrollState.isBottom ? 'black 100%' : 'transparent 100%'
-    })`,
-    WebkitMaskImage: `linear-gradient(to bottom, ${
-      scrollState.isTop ? 'black 0px' : 'transparent 0px'
-    }, black 40px, black calc(100% - 40px), ${
-      scrollState.isBottom ? 'black 100%' : 'transparent 100%'
-    })`
-  }), [scrollState.isTop, scrollState.isBottom]);
 
   if (nodes.length === 0) return null;
 
@@ -187,14 +194,15 @@ export default function Timeline() {
             <div className={`w-8 h-1 rounded-full transition-all duration-300 ${isExpanded ? 'bg-black/20 dark:bg-white/20' : 'bg-transparent'}`} />
           </div>
 
+          <div className="relative z-10 w-full min-h-0">
           <div
             ref={containerRef}
             role="list"
             onScroll={handleScroll}
-            className={`custom-scrollbar flex flex-col pb-4 pt-1 overflow-x-hidden max-h-[320px] min-h-0 w-full relative z-10 ${
+            onWheel={markUserScrolling}
+            className={`custom-scrollbar flex flex-col pb-4 pt-1 overflow-x-hidden max-h-[320px] min-h-0 w-full ${
               isExpanded ? 'overflow-y-auto' : 'overflow-y-hidden'
             }`}
-            style={maskStyle}
           >
             {nodes.map((n, i) => {
               const isActive = i === activeIndex;
@@ -256,6 +264,23 @@ export default function Timeline() {
                 </div>
               );
             })}
+          </div>
+
+          {/* Non-scrolling fade overlays. Kept as siblings of the scroll
+             container (not a mask on it) — masking a scrollable element
+             hides its native scrollbar in Chromium. */}
+          <div
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-x-0 top-0 h-10 rounded-t-xl bg-gradient-to-b from-white/95 dark:from-[#18181b]/95 to-transparent transition-opacity duration-200 ${
+              isExpanded && !scrollState.isTop ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+          <div
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-x-0 bottom-0 h-10 rounded-b-xl bg-gradient-to-t from-white/95 dark:from-[#18181b]/95 to-transparent transition-opacity duration-200 ${
+              isExpanded && !scrollState.isBottom ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
           </div>
 
           {/* Bottom Drag Handle */}
