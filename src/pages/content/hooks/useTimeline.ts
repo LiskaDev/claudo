@@ -79,7 +79,23 @@ const mutationHasMessageWrapper = (mutations: MutationRecord[]): boolean => {
   return false;
 };
 
+/**
+ * Resolves the scroll container that actually wraps the live message
+ * wrappers, rather than blindly taking the first DOM match for the
+ * selector. Long conversations can end up with more than one element
+ * carrying `[data-autoscroll-container="true"]` (e.g. an outer page-level
+ * shell alongside an inner virtualizer viewport); grabbing the wrong one
+ * means our MutationObserver watches a subtree that never mutates, and the
+ * timeline looks permanently frozen. Anchoring on `.closest()` from a real
+ * message wrapper guarantees we get the element whose children actually
+ * change as the conversation grows/scrolls.
+ */
 const findScrollContainer = (): HTMLElement | null => {
+  const wrappers = document.querySelectorAll(MESSAGE_RENDER_WRAPPER_SELECTOR);
+  const lastWrapper = wrappers[wrappers.length - 1];
+  const anchored = lastWrapper?.closest(AUTOSCROLL_CONTAINER_SELECTOR);
+  if (anchored instanceof HTMLElement) return anchored;
+
   const el = document.querySelector(AUTOSCROLL_CONTAINER_SELECTOR);
   return el instanceof HTMLElement ? el : null;
 };
@@ -210,10 +226,15 @@ export const useTimeline = (): TimelineApi => {
   const sidebarResyncTimeoutRef = useRef<number | null>(null);
   const idCounterRef = useRef(0);
   const makeId = () => `tl-${idCounterRef.current++}`;
+  const scrollContainerRef = useRef(scrollContainer);
 
   useEffect(() => {
     nodesRef.current = nodes;
   }, [nodes]);
+
+  useEffect(() => {
+    scrollContainerRef.current = scrollContainer;
+  }, [scrollContainer]);
 
   const refresh = useMemo((): (() => void) => {
     return () => {
@@ -231,17 +252,31 @@ export const useTimeline = (): TimelineApi => {
 
     const timer = window.setInterval(() => {
       const newChatId = getChatId();
-      if (newChatId === currentChatId) return;
-      currentChatId = newChatId;
+      if (newChatId !== currentChatId) {
+        currentChatId = newChatId;
 
-      setNodes([]);
-      setActiveIndex(0);
+        setNodes([]);
+        setActiveIndex(0);
 
-      if (resyncTimeoutRef.current) window.clearTimeout(resyncTimeoutRef.current);
-      resyncTimeoutRef.current = window.setTimeout(() => {
-        resyncTimeoutRef.current = null;
-        refresh();
-      }, CHAT_RESYNC_DELAY_MS);
+        if (resyncTimeoutRef.current) window.clearTimeout(resyncTimeoutRef.current);
+        resyncTimeoutRef.current = window.setTimeout(() => {
+          resyncTimeoutRef.current = null;
+          refresh();
+        }, CHAT_RESYNC_DELAY_MS);
+        return;
+      }
+
+      // Re-validate the held container reference on every tick. If Claude
+      // ever re-parents or replaces the scrolling element under the message
+      // list (observed on very long/active conversations), our
+      // MutationObserver keeps listening on a now-inert node forever and the
+      // timeline stops updating with no error to show for it. Re-resolving
+      // here (same selector logic used everywhere else, just polled instead
+      // of only running once at mount) detects that drift and re-subscribes.
+      const liveContainer = findScrollContainer();
+      if (liveContainer !== scrollContainerRef.current) {
+        setScrollContainer(liveContainer);
+      }
     }, CHAT_POLL_INTERVAL_MS);
 
     return () => {
