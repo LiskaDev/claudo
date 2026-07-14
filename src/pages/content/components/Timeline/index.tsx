@@ -37,6 +37,21 @@ export default function Timeline() {
   const [dragY, setDragY] = useState(0);
   const dragStartRef = useRef<{ startY: number; initialY: number; pointerId: number } | null>(null);
 
+  // --- Keeps the panel clear of the page's own native scrollbar. Overlay
+  // scrollbars (macOS) report ~0px, so this falls back to the old fixed gap;
+  // classic scrollbars (Windows/Linux, ~15-17px) push the panel further in
+  // so the two don't visually collide. ---
+  const [rightGap, setRightGap] = useState(12);
+  useEffect(() => {
+    const measure = () => {
+      const nativeScrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      setRightGap(Math.max(12, nativeScrollbarWidth + 8));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
   useEffect(() => {
     const saved = localStorage.getItem('claudo_timeline_y');
     if (saved) setDragY(Number(saved));
@@ -140,14 +155,15 @@ export default function Timeline() {
           scrollbar-color: rgba(82, 82, 91, 0.6) transparent;
         }
         .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
+          width: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: rgba(161, 161, 170, 0.4);
-          border-radius: 4px;
+          border-radius: 3px;
+          min-height: 32px;
         }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb {
           background: rgba(82, 82, 91, 0.6);
@@ -165,11 +181,11 @@ export default function Timeline() {
           width: 0;
         }
       `}</style>
-      <div 
-        role="navigation" 
+      <div
+        role="navigation"
         aria-label="Claude Context Timeline"
-        className="fixed right-3 top-1/2 z-50 flex flex-col justify-center pointer-events-none min-h-0"
-        style={{ transform: `translateY(calc(-50% + ${dragY}px))` }}
+        className="fixed top-1/2 z-50 flex flex-col justify-center pointer-events-none min-h-0"
+        style={{ right: rightGap, transform: `translateY(calc(-50% + ${dragY}px))` }}
       >
         <div
           onMouseEnter={() => setIsExpanded(true)}
