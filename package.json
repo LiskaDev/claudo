@@ -20,7 +20,7 @@
   "dependencies": {
     "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
-    "i18next": "^25.8.14",
+    "i18next": "^25.10.4",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.577.0",
     "react": "^19.1.0",
